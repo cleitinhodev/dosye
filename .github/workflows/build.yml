@@ -1,0 +1,114 @@
+name: build
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt pyinstaller
+      - name: Check translations
+        shell: bash
+        run: PYTHONPATH=src python -m dosye.i18n
+      - name: Build Dosye.exe
+        shell: bash
+        run: bash scripts/build_windows.sh
+      - name: Self-test the executable
+        shell: bash
+        continue-on-error: true
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          ./dist/Dosye-*-windows-x64.exe --selftest selftest-windows &
+          pid=$!
+          for i in $(seq 1 180); do [ -f selftest-windows/selftest.txt ] && grep -q "^RESULT" selftest-windows/selftest.txt && break; sleep 2; done
+          cat selftest-windows/selftest.txt
+          grep -q "RESULT: ALL OK" selftest-windows/selftest.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dosye-windows
+          path: dist/Dosye-*-windows-x64.exe
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selftest-windows
+          path: selftest-windows/
+          if-no-files-found: ignore
+
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: System libraries (Qt runtime, fonts, AppImage tooling)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends file libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
+            libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0 libxcb-xinerama0 libfontconfig1 libdbus-1-3 \
+            fonts-noto-cjk
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt pyinstaller
+      - name: Check translations
+        run: PYTHONPATH=src python -m dosye.i18n
+      - name: Build binary, tar.gz and AppImage
+        run: bash scripts/build_linux.sh
+      - name: Self-test the binary
+        continue-on-error: true
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          timeout 600 ./dist/Dosye-*-linux-x86_64 --selftest selftest-linux || true
+          cat selftest-linux/selftest.txt
+          grep -q "RESULT: ALL OK" selftest-linux/selftest.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dosye-linux
+          path: |
+            dist/Dosye-*-linux-x86_64
+            dist/Dosye-*-linux-x86_64.tar.gz
+            dist/Dosye-*-x86_64.AppImage
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selftest-linux
+          path: selftest-linux/
+          if-no-files-found: ignore
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, linux]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dosye-*
+          path: out
+          merge-multiple: true
+      - name: Attach to the GitHub release (create it if missing, replace same-name assets)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          ls -la out
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --title "Dosye ${TAG#v}" --notes "See [CHANGELOG.md](CHANGELOG.md)."
+          fi
+          gh release upload "$TAG" out/* --clobber

@@ -1,0 +1,3 @@
+-r requirements.txt
+pyinstaller>=6.6
+numpy>=1.26  # only for tools/make_assets.py --covers (regenerating the sample textures)

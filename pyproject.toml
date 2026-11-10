@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dosye"
+version = "1.0.0"
+description = "Design beautiful custom folder icons (colours, gradients, image covers, light, shadow, PNG emblems) and export .ico / .png — Windows and Linux."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "cleitinhodev" }]
+requires-python = ">=3.9"
+dependencies = ["PySide6-Essentials>=6.6", "Pillow>=10.0"]
+keywords = ["icon", "folder", "ico", "icon-generator", "pyside6", "qt"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: X11 Applications :: Qt",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Graphics",
+    "Natural Language :: English",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Natural Language :: French",
+    "Natural Language :: Spanish",
+    "Natural Language :: German",
+    "Natural Language :: Italian",
+    "Natural Language :: Polish",
+    "Natural Language :: Turkish",
+    "Natural Language :: Russian",
+    "Natural Language :: Japanese",
+    "Natural Language :: Chinese (Simplified)",
+    "Natural Language :: Korean",
+]
+
+[project.urls]
+Homepage = "https://www.bugzinho.com/"
+Source = "https://github.com/cleitinhodev/dosye"
+Issues = "https://github.com/cleitinhodev/dosye/issues"
+Donate = "https://www.bugzinho.com/donate"
+
+[project.gui-scripts]
+dosye = "dosye.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+dosye = ["assets/*/*", "i18n/locales/*.json"]

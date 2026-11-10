@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Dosye
+GenericName=Folder Icon Designer
+GenericName[pt_BR]=Criador de ícones de pasta
+GenericName[ht]=Kreyatè ikòn dosye
+GenericName[fr]=Créateur d'icônes de dossier
+GenericName[es]=Creador de iconos de carpeta
+GenericName[de]=Ordner-Icon-Designer
+GenericName[ja]=フォルダーアイコン作成
+Comment=Design beautiful custom folder icons and export .ico / .png
+Comment[pt_BR]=Crie ícones de pasta personalizados e exporte .ico / .png
+Comment[ht]=Kreye bèl ikòn dosye pèsonalize epi ekspòte .ico / .png
+Exec=dosye %F
+Icon=dosye
+Terminal=false
+Categories=Graphics;Utility;
+Keywords=icon;folder;ico;png;design;
+StartupNotify=true
+StartupWMClass=dosye

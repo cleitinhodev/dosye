@@ -1,0 +1,41 @@
+# build output
+/build/
+/dist/
+/dist-preview/
+*.spec
+*.AppImage
+*.exe
+*.tar.gz
+*.whl
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+
+# virtual envs
+venv/
+.venv/
+env/
+dosye-venv*/
+
+# wine / local test leftovers (never commit the mscms stub)
+wine-test/
+mscms.dll
+*.dll
+.wine/
+
+# editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# secrets
+.env
+*.pem
+*.key
