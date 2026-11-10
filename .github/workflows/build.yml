@@ -4,9 +4,17 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing tag (e.g. v1.0.0) whose release should receive the built files; empty = build only"
+        required: false
+        default: ""
 
 permissions:
   contents: read
+
+env:
+  PYTHONIOENCODING: utf-8
 
 jobs:
   windows:
@@ -90,7 +98,7 @@ jobs:
           if-no-files-found: ignore
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
     needs: [windows, linux]
     runs-on: ubuntu-22.04
     permissions:
@@ -105,7 +113,7 @@ jobs:
       - name: Attach to the GitHub release (create it if missing, replace same-name assets)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.release_tag || github.ref_name }}
         run: |
           ls -la out
           if ! gh release view "$TAG" >/dev/null 2>&1; then

@@ -129,7 +129,9 @@ def font_families(code):
         "zh_CN": ["Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "WenQuanYi Micro Hei"],
         "ko": ["Malgun Gothic", "Noto Sans CJK KR", "Noto Sans KR", "NanumGothic"],
     }
-    return (cjk.get(code, []) + latin) if code in cjk else latin + ["Noto Sans CJK JP"]
+    fams = (cjk.get(code, []) + latin) if code in cjk else latin + ["Noto Sans CJK JP"]
+    forced = os.environ.get("DOSYE_FONT")      # testing / personal preference
+    return ([forced] + fams) if forced else fams
 
 
 def tr_in(code, key):

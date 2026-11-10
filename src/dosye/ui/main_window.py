@@ -24,7 +24,7 @@ from . import theme
 from .effects import FX, clock, HoverGlow, fade_in
 from .icons import icon
 from .widgets import (ElidedLabel, Thumb, VScroll, combo, set_combo_data, SliderRow, ColorButton, Section, row,
-                      ShapeTile, Preview, SizeStrip, StarHeader, GradientTitle, Toast, app_pixmap, bg_swatch, BACKGROUNDS)
+                      ShapeTile, Preview, SizeStrip, StarHeader, GradientTitle, Toast, app_pixmap, bg_swatch, TextFitter, BACKGROUNDS)
 from .dialogs import SettingsDialog, HelpDialog, AboutDialog
 
 STICKERS = ["lua", "fotos", "musica", "codigo", "coracao", "estrela", "nuvem", "jogo", "download"]
@@ -100,6 +100,11 @@ class MainWindow(QMainWindow):
         for k, b in self.bg_btns.items():
             b.setChecked(k == self.preview.bg)
         self._update_strip_visibility()
+        # Long labels (some languages / wider system fonts) shrink instead of being clipped.
+        self._fitter = TextFitter(self._owner)
+        for b in root.findChildren(QPushButton):
+            if b.objectName() in TextFitter.PAD and b.text().strip():
+                self._fitter.watch(b)
 
     def _glow(self, w, **kw):
         g = HoverGlow(w, **kw); self.glows.append(g); return g

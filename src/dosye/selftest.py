@@ -54,8 +54,9 @@ def _overflow_buttons(root):
         f = QFont(b.font())
         if b.isCheckable():
             f.setWeight(QFont.DemiBold)  # checked seg/chip buttons are drawn semi-bold
-        # text + icon + horizontal padding (4+4) + border (1+1)
-        need = QFontMetrics(f).horizontalAdvance(b.text().strip()) + (b.iconSize().width() + 6 if not b.icon().isNull() else 0) + 10
+        # text + icon + horizontal padding + border (seg 4+4+1+1, chip 2+2+1+1)
+        pad = {"chip": 6}.get(b.objectName(), 10)
+        need = QFontMetrics(f).horizontalAdvance(b.text().strip()) + (b.iconSize().width() + 6 if not b.icon().isNull() else 0) + pad
         if need > b.width():
             out.append(f"{b.text().strip()!r} need={need} have={b.width()}")
     return out

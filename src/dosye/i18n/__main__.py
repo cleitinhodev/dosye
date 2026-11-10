@@ -1,5 +1,11 @@
 """python -m dosye.i18n  -> report missing/extra keys for every language."""
+import sys
+
 from . import LANGUAGES, missing_keys, extra_keys, bad_placeholders
+
+# Language names are not ASCII; Windows consoles default to cp1252.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 ok = True
 for code, name, _ in LANGUAGES:

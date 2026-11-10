@@ -3,7 +3,7 @@ import math
 import os
 
 from PySide6.QtCore import (Qt, QSize, QRectF, QPointF, Signal, QTimer, QVariantAnimation, QEasingCurve,
-                            QUrl, QAbstractAnimation)
+                            QUrl, QAbstractAnimation, QObject, QEvent)
 from PySide6.QtGui import (QPixmap, QPainter, QColor, QFont, QPen, QLinearGradient, QRadialGradient,
                            QPainterPath, QFontMetricsF, QDesktopServices, QIcon)
 from PySide6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QSlider, QComboBox,
@@ -623,3 +623,58 @@ def bg_swatch(key, size, dpr=1.0):
     p.end()
     pm.setDevicePixelRatio(dpr)
     return QIcon(pm)
+
+
+class TextFitter(QObject):
+    """Shrinks the font of seg/chip buttons whose label would not fit their width.
+
+    Panels have fixed widths and labels come in 15 languages and whatever UI font the
+    system has, so a label that fits with one font can be clipped with another. The
+    button keeps the theme size when it fits and steps down (to MIN_PT) only when needed.
+    """
+    PAD = {"seg": 10, "chip": 6}        # horizontal padding + border from the stylesheet
+    MIN_PT = 7.0
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._busy = False
+
+    def watch(self, button):
+        button.installEventFilter(self)
+        QTimer.singleShot(0, lambda b=button: self._fit(b))
+
+    def eventFilter(self, obj, ev):
+        if ev.type() == QEvent.Resize and not self._busy:
+            self._fit(obj)
+        return False
+
+    def _fit(self, b):
+        try:
+            if not b.text().strip() or b.width() <= 0:
+                return
+        except RuntimeError:            # button deleted (UI rebuilt)
+            return
+        self._busy = True
+        try:
+            if b.styleSheet():
+                b.setStyleSheet(""); b.ensurePolished()
+            f = QFont(b.font()); f.setWeight(QFont.DemiBold)   # checked state is semi-bold
+            avail = b.width() - self.PAD.get(b.objectName(), 10)
+            if not b.icon().isNull():
+                avail -= b.iconSize().width() + 6
+            pt = f.pointSizeF()
+            if pt <= 0:
+                return
+            text = b.text().strip()
+            size = pt
+            while size > self.MIN_PT and QFontMetricsF(_with_pt(f, size)).horizontalAdvance(text) > avail:
+                size -= 0.25
+            if size < pt:
+                b.setStyleSheet(f"font-size: {size:.2f}pt;")
+                b.setToolTip(b.toolTip() or text)
+        finally:
+            self._busy = False
+
+
+def _with_pt(font, pt):
+    f = QFont(font); f.setPointSizeF(pt); return f
