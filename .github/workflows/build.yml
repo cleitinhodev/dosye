@@ -36,7 +36,8 @@ jobs:
         shell: bash
         continue-on-error: true
         env:
-          QT_QPA_PLATFORM: offscreen
+          # the native platform: Qt's "offscreen" plugin has no font database on Windows
+          QT_QPA_PLATFORM: windows
         run: |
           ./dist/Dosye-*-windows-x64.exe --selftest selftest-windows &
           pid=$!
