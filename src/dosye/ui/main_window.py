@@ -25,7 +25,7 @@ from .effects import FX, clock, HoverGlow, fade_in
 from .icons import icon
 from .widgets import (ElidedLabel, Thumb, VScroll, combo, set_combo_data, SliderRow, ColorButton, Section, row,
                       ShapeTile, Preview, SizeStrip, StarHeader, GradientTitle, Toast, app_pixmap, bg_swatch, TextFitter, BACKGROUNDS)
-from .dialogs import SettingsDialog, HelpDialog, AboutDialog
+from .dialogs import SettingsDialog, HelpDialog, AboutDialog, RepairDialog
 
 STICKERS = ["lua", "fotos", "musica", "codigo", "coracao", "estrela", "nuvem", "jogo", "download"]
 COVERS = ["galaxia", "marmore", "aurora", "madeira", "synthwave", "granilite"]
@@ -428,9 +428,11 @@ class MainWindow(QMainWindow):
         bp.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         h.addWidget(self.png_size); h.addWidget(bp, 1); ex.addLayout(h); self._glow(bp)
         ba = QPushButton(icon("folder_plus", theme.GOLD_LIGHT, 16), " " + tr("export.apply")); ba.setCursor(Qt.PointingHandCursor); ba.clicked.connect(self.apply_to_folder)
-        ba.setToolTip(tr("export.apply_tip_win") if IS_WINDOWS else tr("export.apply_tip_linux"))
+        ba.setToolTip(tr("export.apply_tip"))
         br = QPushButton(icon("folder_minus", theme.MUTED, 16), " " + tr("export.remove")); br.setObjectName("ghost"); br.setCursor(Qt.PointingHandCursor); br.clicked.connect(self.remove_from_folder)
-        for b in (ba, br):
+        bf = QPushButton(icon("folder_fix", theme.MUTED, 16), " " + tr("export.repair")); bf.setObjectName("ghost"); bf.setCursor(Qt.PointingHandCursor)
+        bf.setToolTip(tr("export.repair_tip")); bf.clicked.connect(self.repair_folders); self.b_repair = bf
+        for b in (ba, br, bf):
             b.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed); ex.addWidget(b); self._glow(b)
         ov.addLayout(ex)
         return outer
@@ -803,8 +805,8 @@ class MainWindow(QMainWindow):
         buf = io.BytesIO(); fc.render_size(self.P, size).save(buf, "PNG"); return buf.getvalue()
 
     def apply_folder_icon(self, d):
-        """Applies the current icon to folder d. Returns the method string (see system.folders.apply)."""
-        return folders.apply(d, lambda: fc.ico_bytes(fc.render_sizes(self.P, fc.ICO_SIZES)), self._png_bytes)
+        """Applies the current icon to folder d in every format. Returns a system.foldericon.Result."""
+        return folders.apply(d, lambda: fc.ico_bytes(fc.render_sizes(self.P, fc.ICO_SIZES)), lambda: self._png_bytes(256))
 
     def apply_to_folder(self):
         if not folders.supported():
@@ -818,11 +820,27 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, APP_NAME, tr("msg.unsupported", desk=str(ex))); return
         except Exception as ex:
             QMessageBox.warning(self, APP_NAME, f"{tr('msg.apply_fail')}\n\n{ex}"); return
-        if how == "windows":
-            self.toast.show_message(tr("msg.apply_done_win"), d)
-        else:
-            names = {"gio": tr("folder.how_gio"), "kde": tr("folder.how_kde")}
-            self.toast.show_message(tr("msg.apply_done_linux", how=", ".join(names.get(m, m) for m in how.split("+"))), d)
+        self.toast.show_message(self.apply_message(how), d)
+
+    @staticmethod
+    def apply_message(res):
+        if IS_WINDOWS:
+            return tr("msg.apply_done_win")
+        how = [tr("folder.how_kde")] + ([tr("folder.how_gio")] if res.gio else [])
+        msg = tr("msg.apply_done_linux", how=", ".join(how))
+        return msg + " " + (tr("msg.apply_win_ready") if res.win_attr else tr("msg.apply_win_repair"))
+
+    def repair_folders(self, d=None):
+        """Scans a folder/drive (and subfolders) and restores every Dosye icon found there."""
+        if not folders.supported():
+            QMessageBox.information(self, APP_NAME, tr("msg.unsupported", desk=sys.platform)); return None
+        if not d:
+            d = QFileDialog.getExistingDirectory(self, tr("dlg.pick_folder_repair"), self._export_dir())
+        if not d:
+            return None
+        dlg = RepairDialog(self, d)
+        dlg.exec()
+        return dlg.summary
 
     def remove_from_folder(self):
         if not folders.supported():
@@ -843,12 +861,16 @@ class MainWindow(QMainWindow):
             self.apply_settings(dlg.result_values)
 
     def apply_settings(self, values):
-        old_lang = self.settings["language"]
-        self.settings.data.update(values); self.settings.save()
         from .. import app as app_mod
+        old_code = i18n.current()
+        self.settings.data.update(values); self.settings.save()
+        # Activate the chosen language *before* re-theming (fonts depend on the script) and
+        # rebuilding, so every widget, tooltip and later dialog is created in the new language.
+        # (1.0.0 saved the choice but never activated it, so the UI stayed in the old language.)
+        new_code = app_mod.resolve_language(self.settings)
         app_mod.apply_theme(QApplication.instance(), self.settings)
         set_combo_data(self.png_size, self.settings["png_size"])
-        if values.get("language", old_lang) != old_lang:
+        if new_code != old_code:
             self.build_ui()
         else:
             for g in self.glows:

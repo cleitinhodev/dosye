@@ -62,6 +62,83 @@ def _overflow_buttons(root):
     return out
 
 
+def _folder_tests(w, app, log, out):
+    from .system import foldericon as fi, dosattr
+    from .ui.dialogs import RepairDialog
+    d = tempfile.mkdtemp(prefix="dosye_test_")
+    res = w.apply_folder_icon(d)
+    names = sorted(os.listdir(d))
+    log(f"     result={res!r} files={names}")
+    ico = [n for n in names if n.startswith(".dosye_icon_") and n.endswith(".ico")]
+    png = [n for n in names if n.startswith(".dosye_icon_") and n.endswith(".png")]
+    log.check(len(ico) == 1 and len(png) == 1 and ico[0][:-4] == png[0][:-4], "hidden .ico + .png with the same cache-busting name")
+    raw = open(os.path.join(d, "desktop.ini"), "rb").read()
+    txt = raw.decode("utf-16")
+    log.check(raw[:2] == b"\xff\xfe" and "\r\n" in txt and "\n" not in txt.replace("\r\n", "")
+              and f"IconResource={ico[0]},0" in txt, "desktop.ini: UTF-16 BOM, CRLF, relative IconResource")
+    dirf = open(os.path.join(d, ".directory"), encoding="utf-8").read()
+    log.check(f"Icon=./{png[0]}" in dirf, "KDE/PCManFM-Qt .directory: Icon=./ relative")
+    fa = dosattr.get(d)
+    if IS_WINDOWS:
+        ia = dosattr.get(os.path.join(d, "desktop.ini")) or 0
+        log.check(fa is not None and fa & (dosattr.READONLY | dosattr.SYSTEM) and ia & dosattr.HIDDEN and res.win_attr,
+                  f"Windows: folder Read-only/System (0x{fa or 0:x}), desktop.ini hidden (0x{ia:x})")
+    else:
+        log(f"     DOS attributes on this file system: {'0x%x' % fa if fa is not None else 'not stored (ext4/btrfs…)'} win_attr={res.win_attr}")
+        if fi.gio_available():
+            if res.gio:
+                log.check(fi.gio_get(d) == fi._file_uri(os.path.join(d, png[0])), "GIO metadata::custom-icon set")
+            else:   # headless CI: no gvfsd-metadata session daemon, so GIO refuses the attribute
+                log("     WARN gio present but metadata::custom-icon not settable here (no gvfsd-metadata?)")
+        else:
+            log("     gio not installed: GNOME/Nemo/Caja/Thunar method skipped")
+    log(f"     message: {w.apply_message(res)}")
+    # simulate a copy that lost the attribute / a cloud service dropping desktop.ini and the PNG
+    dosattr.change(d, remove=dosattr.READONLY | dosattr.SYSTEM)
+    for n in (png[0], "desktop.ini"):
+        fi._remove(os.path.join(d, n))
+    r = fi.repair_tree(d)
+    after = sorted(os.listdir(d))
+    log.check(r["fixed"] == 1 and set(after) == set(names)
+              and (not IS_WINDOWS or dosattr.get(d) & (dosattr.READONLY | dosattr.SYSTEM)), f"repair restores lost files/attribute ({r['fixed']} fixed): {after}")
+    r2 = fi.repair_tree(d)
+    log.check(r2["fixed"] == 0 and r2["ok"] == 1, "repair is idempotent (second run changes nothing)")
+    # Dosye 1.0.0 layouts (Linux: PNG + absolute .directory, Windows/Gerador: .icone_pasta_ .ico)
+    root = tempfile.mkdtemp(prefix="dosye_tree_")
+    a, b = os.path.join(root, "linux100"), os.path.join(root, "sub", "win100")
+    os.makedirs(a); os.makedirs(b)
+    open(os.path.join(a, ".dosye_icon_1700000000.png"), "wb").write(open(os.path.join(d, png[0]), "rb").read())
+    open(os.path.join(a, ".directory"), "w").write(f"[Desktop Entry]\nIcon={a}/.dosye_icon_1700000000.png\n")
+    open(os.path.join(b, ".icone_pasta_1600000000.ico"), "wb").write(open(os.path.join(d, ico[0]), "rb").read())
+    open(os.path.join(b, "desktop.ini"), "wb").write("[.ShellClassInfo]\r\nIconResource=.icone_pasta_1600000000.ico,0\r\n".encode("utf-16"))
+    os.makedirs(os.path.join(root, "plain", "deep"))
+    r3 = fi.repair_tree(root)
+    okA = {".dosye_icon_1700000000.ico", "desktop.ini"} <= set(os.listdir(a)) and "Icon=./.dosye_icon_1700000000.png" in open(os.path.join(a, ".directory")).read()
+    okB = {".icone_pasta_1600000000.png", ".directory"} <= set(os.listdir(b))
+    log.check(r3["found"] == 2 and r3["fixed"] == 2 and okA and okB, f"1.0.0 / Gerador de Pastas folders upgraded by repair (scanned {r3['scanned']})")
+    # repair dialog (UI) + screenshot
+    import shutil
+    shutil.rmtree(os.path.join(a)); os.makedirs(a)
+    open(os.path.join(a, ".dosye_icon_1700000000.png"), "wb").write(open(os.path.join(d, png[0]), "rb").read())
+    dlg = RepairDialog(w, root); dlg.show()
+    t0 = time.time()
+    while not dlg.is_done() and time.time() - t0 < 30:
+        app.processEvents(); time.sleep(0.02)
+    app.processEvents()
+    dlg.grab().save(os.path.join(out, f"repair_dialog_{i18n.current()}.png"))
+    log.check(dlg.is_done() and dlg.summary["found"] == 2 and dlg.summary["fixed"] == 1, f"Repair dialog: {dlg.summary}")
+    dlg.accept()
+    # removal deletes every format, new and legacy
+    ok_rm = True
+    for f in (d, a, b):
+        had = folders.remove(f)
+        left = [n for n in os.listdir(f) if fi._is_ours(n) or n in ("desktop.ini", ".directory")]
+        ok_rm &= had and not left and not ((dosattr.get(f) or 0) & (dosattr.READONLY | dosattr.SYSTEM))
+    log.check(ok_rm, "remove deletes all formats (1.1 and legacy) and clears the folder attribute")
+    for f in (d, root):
+        shutil.rmtree(f, ignore_errors=True)
+
+
 def run(w, app, out):
     os.makedirs(out, exist_ok=True)
     log = Log(os.path.join(out, "selftest.txt"))
@@ -143,31 +220,10 @@ def run(w, app, out):
         w.load_preset_file(p1); settle()
         log.check(w.P["style"] == "moderna" and w.P["overlay_mode"] == "nenhum", "invalid values fall back to defaults")
 
-        # 5) folder icon integration ------------------------------------------
+        # 5) folder icon integration (portable: every format on every OS) ------
         log("\n[folder icon]")
         if folders.supported():
-            d = tempfile.mkdtemp(prefix="dosye_test_")
-            how = w.apply_folder_icon(d)
-            names = os.listdir(d)
-            log(f"     method={how} files={names}")
-            if IS_WINDOWS:
-                log.check("desktop.ini" in names and any(n.startswith(".dosye_icon_") for n in names), "Windows desktop.ini + hidden .ico written")
-            else:
-                log.check(any(n.startswith(".dosye_icon_") and n.endswith(".png") for n in names), "Linux hidden PNG written")
-                log.check(".directory" in names and "Icon=" in open(os.path.join(d, ".directory")).read(), "KDE .directory Icon= written")
-                from .system import linux
-                if linux.gio_available():
-                    r = linux._gio("info", "-a", "metadata::custom-icon", d)
-                    if "gio" in how:
-                        log.check(True, f"GIO metadata::custom-icon set ({'gvfs metadata ok' if r and '.dosye_icon_' in r.stdout else 'attribute not readable back'})")
-                    else:  # headless CI etc.: no gvfsd-metadata session daemon, so GIO refuses the attribute
-                        log("     WARN gio present but metadata::custom-icon not settable here (no gvfsd-metadata?)")
-                else:
-                    log("     gio not installed: GNOME method skipped")
-            had = folders.remove(d)
-            left = [n for n in os.listdir(d)]
-            log.check(had and not any(n.startswith(".dosye_icon_") for n in left) and ".directory" not in left and "desktop.ini" not in left,
-                      f"remove icon cleans up (left: {left})")
+            _folder_tests(w, app, log, out)
         else:
             log("     not supported on this OS")
 
@@ -190,6 +246,25 @@ def run(w, app, out):
         log.check(not clock().is_running(), "clock paused while minimized")
         w.showNormal(); app.processEvents()
         s.data.update(saved); w.apply_settings({"animations": True, "reduce_effects": False})
+
+        # 6b) language switch at runtime (1.0.0 bug: Settings saved it but nothing changed)
+        log("\n[language switch]")
+        en, ja = i18n._load("en"), i18n._load("ja")
+        w.apply_settings({"language": "pt_BR"}); settle()
+        pt = i18n._load("pt_BR")
+        log.check(w.search.placeholderText() == pt["shapes.search"], f"start in pt_BR: {w.search.placeholderText()!r}")
+        for code, ref in (("en", en), ("ja", ja), ("ht", i18n._load("ht"))):
+            w.apply_settings({"language": code}); settle()
+            texts = {b.text().strip() for b in w.centralWidget().findChildren(QPushButton)}
+            ok = (i18n.current() == code and w.search.placeholderText() == ref["shapes.search"]
+                  and ref["export.repair"] in texts and ref["export.ico"] in texts
+                  and w.b_repair.toolTip() == ref["export.repair_tip"])
+            log.check(ok, f"Settings -> {code}: UI switched live (placeholder {w.search.placeholderText()!r}, buttons/tooltips)")
+            w.grab().save(os.path.join(out, f"runtime_switch_{code}.png"))
+        from PySide6.QtCore import QCoreApplication
+        qt_cancel = QCoreApplication.translate("QPlatformTheme", "Cancel")
+        log(f"     Qt standard buttons in 'ht' (via qtbase_fr): Cancel -> {qt_cancel!r}")
+        w.apply_settings({"language": saved.get("language", "auto")}); settle()
 
         # 7) layout in every language ------------------------------------------
         log("\n[layout]")

@@ -46,8 +46,9 @@ shadow, then export a multi-size **`.ico`** or a **`.png`** — or apply the ico
 - **Light & shadow**: light intensity and direction, glossy finish, outer glow, drop shadow, inner shading,
   papers inside, frosted-glass front, outline, mirrored tab.
 - **Export** `.ico` with any of 16 · 20 · 24 · 32 · 40 · 48 · 64 · 128 · 256 px, and PNG at 256 / 512 / 1024 px.
-- **Apply to a folder** directly: Windows (`desktop.ini`), Linux GNOME Files / Nemo / Caja (GIO metadata) and
-  KDE Dolphin (`.directory`) — and remove it again.
+- **Apply to a folder** in every format at once, on any OS — Windows (`desktop.ini`), KDE Dolphin / PCManFM-Qt
+  (`.directory`) and GNOME Files / Nemo / Caja / Thunar (GIO metadata) — so the icon **travels with the folder**
+  to pendrives and other PCs. **Repair folder icons** restores them in one click after a copy that lost them.
 - **Presets** (`.dosye.json`, images embedded); old *Gerador de Pastas* `.pasta.json` presets open too.
 - **Night-sky neon theme** drawn from the Dosye icon, with gentle animations that pause when the window is hidden
   and can be turned off (or *reduce effects* for slow PCs / remote desktop).
@@ -66,10 +67,10 @@ Grab the latest build from **[Releases](https://github.com/cleitinhodev/dosye/re
 
 | System | File | How to run |
 | --- | --- | --- |
-| Windows 10/11 (64-bit) | `Dosye-1.0.0-windows-x64.exe` | Double-click. Single portable file, no install. |
-| Linux x86_64 | `Dosye-1.0.0-x86_64.AppImage` | `chmod +x Dosye-*.AppImage && ./Dosye-*.AppImage` |
-| Linux x86_64 | `Dosye-1.0.0-linux-x86_64.tar.gz` | Extract, then `./dosye` — or `./install.sh` for a menu entry (no root). |
-| Linux x86_64 | `Dosye-1.0.0-linux-x86_64` | Bare single-file binary: `chmod +x` and run. |
+| Windows 10/11 (64-bit) | `Dosye-1.1.0-windows-x64.exe` | Double-click. Single portable file, no install. |
+| Linux x86_64 | `Dosye-1.1.0-x86_64.AppImage` | `chmod +x Dosye-*.AppImage && ./Dosye-*.AppImage` |
+| Linux x86_64 | `Dosye-1.1.0-linux-x86_64.tar.gz` | Extract, then `./dosye` — or `./install.sh` for a menu entry (no root). |
+| Linux x86_64 | `Dosye-1.1.0-linux-x86_64` | Bare single-file binary: `chmod +x` and run. |
 
 > **Windows SmartScreen:** the executable is not code-signed yet, so Windows may show
 > “Windows protected your PC”. Click **More info → Run anyway**. You can always build it yourself from source.
@@ -97,8 +98,9 @@ bash scripts/build_windows.sh    # dist/Dosye-<v>-windows-x64.exe — on Windows
 Pushing a `v*` tag runs [the build workflow](.github/workflows/build.yml), which builds both systems on GitHub
 Actions and attaches the files to the release.
 
-Useful flags: `--lang ht` (force a language), `--selftest DIR` (exports every shape, checks every language,
-presets, folder icons, animations and layout, and writes `DIR/selftest.txt`), `--version`.
+Useful flags: `--lang ht` (force a language), `--repair DIR` (restore every Dosye folder icon inside `DIR`, no
+window), `--selftest DIR` (exports every shape, checks every language, presets, folder icons and repair, the live
+language switch, animations and layout, and writes `DIR/selftest.txt`), `--version`.
 
 Project layout:
 
@@ -107,20 +109,47 @@ src/dosye/
   core/        rendering engine (render.py) and the 51 shapes (shapes.py)
   ui/          main window, widgets, dialogs, theme and effects
   i18n/        translation loader + locales/*.json
-  system/      Windows / Linux folder-icon integration
+  system/      portable folder icons (foldericon.py), DOS attributes (dosattr.py), Windows helpers
   assets/      icons, sample covers, stickers, UI images
 tools/         asset generators (stickers, textures, UI images)
 scripts/       build_windows.sh, build_linux.sh
 packaging/     PyInstaller launcher, Windows version info, Linux .desktop + install.sh
 ```
 
+## Folder icons that travel
+
+When you apply an icon — on Windows or on Linux — Dosye writes **all formats inside the folder**:
+
+| File | Used by |
+| --- | --- |
+| `.dosye_icon_<n>.ico` (hidden) + `desktop.ini` with a *relative* `IconResource` | Windows File Explorer |
+| `.dosye_icon_<n>.png` (hidden) + `.directory` with `Icon=./…` | KDE Dolphin, PCManFM-Qt |
+| GIO `metadata::custom-icon` (set on Linux) | GNOME Files (Nautilus), Nemo, Caja, Thunar |
+
+Windows only reads `desktop.ini` while the **folder** has its Read-only/System attribute. Dosye sets it on Windows,
+and on Linux too when the folder is on a **FAT32, exFAT (Linux 6.7+) or NTFS** drive. Some copies drop that
+attribute, and GNOME-family file managers store their icon setting per computer, so here is what to expect:
+
+| Situation | Windows | KDE Dolphin / PCManFM-Qt | GNOME Files / Nemo / Caja / Thunar |
+| --- | --- | --- | --- |
+| Icon applied by Dosye directly on the pendrive (from Windows or Linux), pendrive opened on another PC | ✅ | ✅ | 🔧 once per PC |
+| Folder copied Windows → pendrive → Windows with File Explorer | ✅ if the attribute survived, otherwise 🔧 | ✅ | 🔧 |
+| Folder copied with `xcopy /E /H /K` (keeps attributes) | ✅ | ✅ | 🔧 |
+| Folder copied from a Linux disk (ext4/btrfs) to Windows | 🔧 | ✅ | 🔧 |
+| Windows → Linux | — | ✅ | 🔧 |
+| zip archives, OneDrive / Google Drive / Dropbox (Dropbox skips `desktop.ini`) | 🔧 | ✅ when hidden files are kept | 🔧 |
+
+🔧 = click **Repair folder icons…**, pick the folder or the whole drive: Dosye scans every subfolder, rebuilds any
+missing file (`.ico` ↔ `.png`), sets the attribute again and refreshes the GIO metadata. Same thing without a
+window: `dosye --repair /media/me/PENDRIVE` (or `Dosye.exe --repair E:\`). Folders made by Dosye 1.0 and
+*Gerador de Pastas* are upgraded by the repair too, and *Remove icon from a folder* deletes every format.
+
+No trick can make Windows honour `desktop.ini` without that folder attribute: autorun is disabled on modern Windows
+for safety, so the one-click repair is the reliable way after a copy that lost it.
+
 ## Linux notes
 
-- *Apply icon to a folder* writes a hidden `.dosye_icon_*.png` in the folder and sets it for
-  **GNOME Files (Nautilus), Nemo and Caja** via `gio set <folder> metadata::custom-icon`, and for
-  **KDE Dolphin** via the folder's `.directory` file. Reopen the folder window if it does not refresh.
-- Thunar, PCManFM and some others don't support per-folder custom icons; Dosye tells you when it can't apply the
-  icon — export a PNG and set it in your file manager instead.
+- PCManFM (GTK) and other file managers without per-folder icon support show the normal folder.
 - The tar.gz `install.sh` installs to `~/.local` (binary, menu entry and icon); `./install.sh --uninstall` removes it.
 - Japanese, Chinese and Korean need a CJK font (e.g. `fonts-noto-cjk`), which most desktops already have.
 

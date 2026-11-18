@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dosye"
-version = "1.0.0"
+version = "1.1.0"
 description = "Design beautiful custom folder icons (colours, gradients, image covers, light, shadow, PNG emblems) and export .ico / .png — Windows and Linux."
 readme = "README.md"
 license = "GPL-3.0-or-later"

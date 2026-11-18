@@ -2,10 +2,10 @@
 import html
 import sys
 
-from PySide6.QtCore import Qt, QUrl, QRectF, QPointF
+from PySide6.QtCore import Qt, QUrl, QRectF, QPointF, QTimer
 from PySide6.QtGui import QDesktopServices, QIcon, QPainter, QRadialGradient, QColor, QPixmap
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QCheckBox,
-                               QTextBrowser, QFileDialog, QWidget, QFrame)
+                               QTextBrowser, QFileDialog, QWidget, QFrame, QProgressBar)
 
 from .. import __version__, APP_NAME, URL_SITE, URL_PROJECT, URL_DONATE, URL_LICENSE, URL_ISSUES
 from ..i18n import tr, LANGUAGES, detect_system_language, native_name
@@ -143,7 +143,7 @@ class SettingsDialog(DosyeDialog):
 
 # ------------------------------------------------------------------ help
 
-HELP_SECTIONS = ["start", "shapes", "fill", "png", "effects", "export", "folder", "presets"]
+HELP_SECTIONS = ["start", "shapes", "fill", "png", "effects", "export", "folder", "repair", "presets"]
 
 
 def help_html():
@@ -231,3 +231,107 @@ class AboutDialog(DosyeDialog):
         bb = QHBoxLayout(); bb.addStretch(1)
         ok = QPushButton(tr("common.close")); ok.setObjectName("primary"); ok.setCursor(Qt.PointingHandCursor); ok.clicked.connect(self.accept)
         bb.addWidget(ok); v.addSpacing(6); v.addLayout(bb)
+
+
+# ------------------------------------------------------------------ repair folder icons
+
+class RepairDialog(DosyeDialog):
+    """Walks a folder/drive in a worker thread and restores every Dosye folder icon found.
+
+    File-system work runs off the GUI thread (a whole drive can take a while); a timer
+    polls the shared counters, so the window stays responsive and can be stopped.
+    """
+
+    MAX_LISTED = 300
+
+    def __init__(self, parent, root):
+        super().__init__(parent, tr("repair.title"))
+        import threading
+        self.root = root
+        self.summary = None
+        self._state = {"scanned": 0, "found": 0, "fixed": 0, "ok": 0, "failed": 0, "current": root, "lines": [], "done": False}
+        self._stop = threading.Event()
+        self.setMinimumWidth(560)
+        v = QVBoxLayout(self); v.setContentsMargins(22, 20, 22, 18); v.setSpacing(12)
+        head = QHBoxLayout(); head.setSpacing(12)
+        ic = QLabel(); ic.setPixmap(icon("folder_fix", theme.GOLD_LIGHT, 34).pixmap(34, 34)); head.addWidget(ic)
+        t = GradientTitle(tr("repair.title"), 20); head.addWidget(t, 1); v.addLayout(head)
+        self.path_lbl = ElidedLabel(root, Qt.ElideMiddle); self.path_lbl.setObjectName("hint"); v.addWidget(self.path_lbl)
+        self.bar = QProgressBar(); self.bar.setRange(0, 0); self.bar.setTextVisible(False); self.bar.setFixedHeight(8); v.addWidget(self.bar)
+        self.status = QLabel(tr("repair.progress", n=0, f=0)); self.status.setWordWrap(True); v.addWidget(self.status)
+        self.log = QTextBrowser(); self.log.setMinimumHeight(160); self.log.setOpenLinks(False); v.addWidget(self.log, 1)
+        bh = QHBoxLayout(); bh.addStretch(1)
+        self.btn = QPushButton(tr("repair.stop")); self.btn.setObjectName("ghost"); self.btn.setCursor(Qt.PointingHandCursor)
+        self.btn.clicked.connect(self._on_button); bh.addWidget(self.btn); v.addLayout(bh)
+        self._shown_lines = 0
+        self._timer = QTimer(self); self._timer.timeout.connect(self._poll)
+        # Started once the window is on screen: native window setup (title bar, DWM) stays on
+        # the GUI thread before any file-system work begins (avoids a race seen under Wine).
+        self._thread = threading.Thread(target=self._work, daemon=True)
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        if not self._thread.is_alive() and not self._state["done"] and self._thread.ident is None:
+            QTimer.singleShot(0, self._start)
+
+    def _start(self):
+        if self._thread.ident is None:
+            self._thread.start(); self._timer.start(120)
+
+    def _work(self):
+        from ..system import foldericon
+        st = self._state
+        try:
+            for scanned, d, res in foldericon.iter_repair(self.root, self._stop.is_set):
+                st["scanned"] = scanned; st["current"] = d
+                if res is None:
+                    continue
+                st["found"] += 1
+                if isinstance(res, Exception):
+                    st["failed"] += 1; st["lines"].append(("✗", d, str(res)))
+                elif res.changed:
+                    st["fixed"] += 1; st["lines"].append(("✓", d, ""))
+                else:
+                    st["ok"] += 1; st["lines"].append(("•", d, ""))
+        finally:
+            st["done"] = True
+
+    def _poll(self):
+        st = self._state
+        self.status.setText(tr("repair.progress", n=st["scanned"], f=st["found"]))
+        self.path_lbl.setText(st["current"])
+        lines = st["lines"]
+        while self._shown_lines < min(len(lines), self.MAX_LISTED):
+            mark, d, err = lines[self._shown_lines]; self._shown_lines += 1
+            col = {"✓": theme.GOLD_LIGHT, "✗": "#FF6B8B"}.get(mark, theme.MUTED)
+            self.log.append(f"<span style='color:{col}'>{mark}</span> {html.escape(d)}"
+                            + (f" <span style='color:#FF6B8B'>({html.escape(err)})</span>" if err else ""))
+        if st["done"]:
+            self._timer.stop(); self._finish()
+
+    def _finish(self):
+        st = self._state
+        self.summary = {k: st[k] for k in ("scanned", "found", "fixed", "ok", "failed")}
+        self.bar.setRange(0, 1); self.bar.setValue(1)
+        self.path_lbl.setText(self.root)
+        if st["found"]:
+            msg = tr("repair.done", found=st["found"], fixed=st["fixed"], ok=st["ok"])
+            if st["failed"]:
+                msg += "\n" + tr("repair.failed", n=st["failed"])
+        else:
+            msg = tr("repair.none")
+        self.status.setText(msg)
+        self.btn.setText(tr("common.close")); self.btn.setObjectName("primary"); self.btn.style().unpolish(self.btn); self.btn.style().polish(self.btn)
+
+    def _on_button(self):
+        if self._state["done"]:
+            self.accept()
+        else:
+            self._stop.set()
+
+    def is_done(self):
+        return self._state["done"] and self.summary is not None
+
+    def reject(self):
+        self._stop.set()
+        super().reject()

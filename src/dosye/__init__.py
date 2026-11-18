@@ -2,7 +2,7 @@
 
 "Dosye" means "folder" in Haitian Creole (Kreyòl ayisyen).
 """
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 APP_NAME = "Dosye"
 APP_ID = "dosye"                      # used for config dir, .desktop file, AppUserModelID

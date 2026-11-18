@@ -58,6 +58,10 @@ def _draw(name, p, c):
         p.drawLine(QPointF(9, 13), QPointF(15, 13))
         if name == "folder_plus":
             p.drawLine(QPointF(12, 10), QPointF(12, 16))
+    elif name == "folder_fix":
+        p.drawPolyline([QPointF(12, 18.5), QPointF(3, 18.5), QPointF(3, 5.5), QPointF(9, 5.5), QPointF(11, 7.5), QPointF(21, 7.5), QPointF(21, 11)])
+        p.drawArc(QRectF(13, 12, 8, 8), 60 * 16, 280 * 16)
+        p.setBrush(QColor(c)); p.drawPolygon([QPointF(19.6, 10.4), QPointF(20.6, 14.2), QPointF(16.9, 13.2)])
     elif name == "image":
         p.drawRoundedRect(QRectF(3.5, 5, 17, 14), 2.5, 2.5)
         p.drawPolyline([QPointF(5, 17), QPointF(10, 11.5), QPointF(13.5, 15), QPointF(15.5, 13), QPointF(19, 16.5)])

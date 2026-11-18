@@ -20,11 +20,39 @@ def apply_theme(app, settings):
     clock().set_enabled(FX.animations)
 
 
+# Qt's own strings (standard dialog buttons, colour picker, context menus) come from the
+# qtbase_*.qm catalogues shipped with PySide6. French-based creoles fall back to French.
+_QT_CATALOG = {"ht": "fr", "gcf": "fr", "mfe": "fr"}
+_qt_translator = None
+
+
+def _install_qt_translator(code):
+    global _qt_translator
+    from PySide6.QtCore import QCoreApplication, QLibraryInfo, QTranslator
+    app = QCoreApplication.instance()
+    if app is None:
+        return False
+    if _qt_translator is not None:
+        app.removeTranslator(_qt_translator)
+        _qt_translator = None
+    name = _QT_CATALOG.get(code, code)
+    if name == "en":
+        return True
+    t = QTranslator(app)
+    if t.load(f"qtbase_{name}", QLibraryInfo.path(QLibraryInfo.TranslationsPath)):
+        app.installTranslator(t); _qt_translator = t
+        return True
+    return False
+
+
 def resolve_language(settings, forced=None):
+    """Activate the UI language (forced > saved setting > system) and Qt's matching catalogue."""
     code = forced or settings["language"]
     if code == "auto" or code not in i18n.CODES:
         code = i18n.detect_system_language()
-    return i18n.set_language(code)
+    code = i18n.set_language(code)
+    _install_qt_translator(code)
+    return code
 
 
 def _palette(app):
@@ -46,8 +74,20 @@ def main(argv=None):
     ap.add_argument("--lang", help="force a UI language for this run (e.g. ht, pt_BR, ja)")
     ap.add_argument("--screenshot", metavar="PNG", help="save a screenshot of the main window and quit")
     ap.add_argument("--size", metavar="WxH", help="initial window size (testing)")
+    ap.add_argument("--repair", metavar="DIR", help="restore every Dosye folder icon inside DIR and its subfolders, then exit")
     ap.add_argument("--version", action="version", version=f"{APP_NAME} {__version__}")
     args, qt_args = ap.parse_known_args(argv[1:])
+
+    if args.repair:        # headless: no window, usable from scripts / a terminal
+        from .system import foldericon
+        r = foldericon.repair_tree(args.repair)
+        lines = [f"{st:6} {d}" + (f"  ({err})" if err else "") for d, st, err in r["folders"]]
+        lines.append(f"scanned={r['scanned']} found={r['found']} fixed={r['fixed']} ok={r['ok']} failed={r['failed']}")
+        try:
+            print("\n".join(lines)); sys.stdout.flush()
+        except Exception:
+            pass
+        sys.exit(1 if r["failed"] else 0)
 
     windows.set_app_user_model_id(WIN_APP_USER_MODEL_ID)
     from PySide6.QtCore import Qt, QTimer

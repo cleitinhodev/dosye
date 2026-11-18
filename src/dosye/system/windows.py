@@ -1,16 +1,8 @@
 """Windows-only helpers. Importing this module is safe anywhere; functions no-op off Windows."""
 import ctypes
-import os
 import sys
-import time
 
 IS_WINDOWS = sys.platform == "win32"
-
-# Our hidden icon files inside the target folder. Older Gerador de Pastas builds used ".icone_pasta_".
-ICON_PREFIX = ".dosye_icon_"
-LEGACY_PREFIXES = (ICON_PREFIX, ".icone_pasta_")
-
-FILE_ATTRIBUTE_READONLY, FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_SYSTEM, FILE_ATTRIBUTE_NORMAL = 0x1, 0x2, 0x4, 0x80
 
 
 def set_app_user_model_id(app_id):
@@ -65,88 +57,4 @@ def set_window_icons(widget, small_ico, big_ico):
     except Exception:
         return False
 
-
-# ------------------------------------------------------------ folder icons (desktop.ini)
-
-def _setattr(path, attr):
-    ctypes.windll.kernel32.SetFileAttributesW(str(path), attr)
-
-
-def _getattr(path):
-    return ctypes.windll.kernel32.GetFileAttributesW(str(path))
-
-
-def _notify(folder):
-    try:
-        sh = ctypes.windll.shell32
-        sh.SHChangeNotify(0x00002000, 0x0005, ctypes.c_wchar_p(folder), None)   # SHCNE_UPDATEITEM
-        sh.SHChangeNotify(0x08000000, 0x0000, None, None)                        # SHCNE_ASSOCCHANGED
-    except Exception:
-        pass
-
-
-def _our_icons(folder):
-    return [n for n in os.listdir(folder) if n.startswith(LEGACY_PREFIXES) and n.endswith(".ico")]
-
-
-def _remove_old_icons(folder):
-    for n in _our_icons(folder):
-        p = os.path.join(folder, n)
-        _setattr(p, FILE_ATTRIBUTE_NORMAL)
-        try:
-            os.remove(p)
-        except OSError:
-            pass
-
-
-def apply_folder_icon(folder, ico):
-    """Writes a hidden .ico + desktop.ini (keeps other desktop.ini sections)."""
-    folder = os.path.abspath(folder)
-    _remove_old_icons(folder)
-    name = f"{ICON_PREFIX}{int(time.time())}.ico"   # new name every time defeats the icon cache
-    icon_path = os.path.join(folder, name)
-    with open(icon_path, "wb") as f:
-        f.write(ico)
-    _setattr(icon_path, FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM)
-    ini = os.path.join(folder, "desktop.ini")
-    lines = []
-    if os.path.exists(ini):
-        _setattr(ini, FILE_ATTRIBUTE_NORMAL)
-        try:
-            raw = open(ini, "rb").read()
-            txt = raw.decode("utf-16") if raw[:2] in (b"\xff\xfe", b"\xfe\xff") else raw.decode("mbcs", errors="ignore")
-            skip = False
-            for ln in txt.splitlines():
-                s = ln.strip()
-                if s.startswith("["):
-                    skip = s.lower() == "[.shellclassinfo]"
-                if not skip and s:
-                    lines.append(ln)
-        except Exception:
-            lines = []
-    content = "[.ShellClassInfo]\r\nIconResource=" + name + ",0\r\n" + "\r\n".join(lines) + ("\r\n" if lines else "")
-    with open(ini, "w", encoding="utf-16") as f:
-        f.write(content)
-    _setattr(ini, FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM)
-    a = _getattr(folder)
-    if a != 0xFFFFFFFF:
-        _setattr(folder, a | FILE_ATTRIBUTE_READONLY)
-    _notify(folder)
-
-
-def remove_folder_icon(folder):
-    folder = os.path.abspath(folder)
-    ini = os.path.join(folder, "desktop.ini")
-    had = bool(_our_icons(folder))
-    _remove_old_icons(folder)
-    if had and os.path.exists(ini):
-        _setattr(ini, FILE_ATTRIBUTE_NORMAL)
-        try:
-            os.remove(ini)
-        except OSError:
-            pass
-        a = _getattr(folder)
-        if a != 0xFFFFFFFF:
-            _setattr(folder, a & ~FILE_ATTRIBUTE_READONLY)
-    _notify(folder)
-    return had
+# Folder icons moved to foldericon.py (cross-OS) and dosattr.py (attributes) in 1.1.0.

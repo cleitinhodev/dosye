@@ -2,6 +2,33 @@
 
 All notable changes to Dosye are documented here. Dates are in America/Sao_Paulo time.
 
+## [1.1.0] — 2026-11-18
+
+### Fixed
+- **Changing the language in Settings now changes the whole UI immediately** — main window, panels, buttons,
+  tooltips, combo boxes and every dialog opened afterwards, plus Qt's own standard buttons. In 1.0.0 the choice
+  was saved but never activated, so the texts stayed in the previous language until a restart.
+
+### Added
+- **Folder icons that travel.** Applying an icon now writes every format into the folder on any OS: a hidden
+  `.ico` + `desktop.ini` with a relative path (Windows), a hidden `.png` + `.directory` with `Icon=./…`
+  (KDE Dolphin, PCManFM-Qt), and the GIO metadata for GNOME Files, Nemo, Caja and Thunar on Linux. The same
+  folder shows its icon on Windows and Linux, including on pendrives.
+- The folder attribute Windows needs (Read-only, or System as a fallback) is set from Windows **and from Linux** on
+  FAT32, exFAT (Linux 6.7+) and NTFS drives, so a pendrive prepared on Linux works on Windows.
+- **Repair folder icons…**: pick a folder or a whole drive and Dosye scans all subfolders, rebuilds missing files
+  (`.ico` ↔ `.png`), sets the attribute again and refreshes the GIO metadata — for copies that lost them
+  (File Explorer copies, zip, cloud sync, Linux → Windows, another Linux PC). Runs in the background, can be
+  stopped. Also available without a window: `dosye --repair DIR`.
+- Help page “Icon gone after a copy? Repair it”, new strings in all 15 languages.
+- Self-test: all folder-icon formats, damage + repair, 1.0.0 layouts, the repair dialog, and the live language
+  switch through Settings.
+
+### Changed
+- Folders made by Dosye 1.0.0 and *Gerador de Pastas* are upgraded by the repair; *Remove icon from a folder*
+  deletes every format (new and old) and clears the folder attribute, keeping any foreign `desktop.ini` content.
+- `desktop.ini` is now written with proper CRLF line endings (1.0.0 could write `\r\r\n` on Windows).
+
 ## [1.0.0] — 2026-11-10
 
 The first release under the name **Dosye** (Haitian Creole for “folder”), rebuilt as a real project from
@@ -64,4 +91,5 @@ The first release under the name **Dosye** (Haitian Creole for “folder”), re
 - Export `.ico` (16–256 px) and PNG (256/512/1024 px), apply the icon to a Windows folder and remove it,
   presets (`.pasta.json`) with embedded images.
 
+[1.1.0]: https://github.com/cleitinhodev/dosye/releases/tag/v1.1.0
 [1.0.0]: https://github.com/cleitinhodev/dosye/releases/tag/v1.0.0

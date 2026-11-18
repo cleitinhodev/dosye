@@ -1,12 +1,13 @@
-"""Cross-platform "apply icon to a folder" facade used by the UI."""
+"""Facade used by the UI: apply / remove / repair folder icons (see foldericon.py)."""
 import sys
 
 from . import IS_WINDOWS, IS_LINUX
-from . import windows, linux
+from . import foldericon
+from .foldericon import Result, repair_tree, iter_repair, repair_folder, is_dosye_folder  # noqa: F401
 
 
 class Unsupported(Exception):
-    """Raised when this OS / desktop has no known way to set a folder icon."""
+    """Raised when this OS has no known way to set a folder icon."""
 
 
 def supported():
@@ -14,25 +15,14 @@ def supported():
 
 
 def apply(folder, make_ico, make_png):
-    """make_ico()/make_png() are callables returning bytes (rendered lazily).
-
-    Returns a short machine-readable description of what was done:
-    "windows" | "gio" | "kde" | "gio+kde".
-    """
-    if IS_WINDOWS:
-        windows.apply_folder_icon(folder, make_ico())
-        return "windows"
-    if IS_LINUX:
-        methods = linux.apply_folder_icon(folder, make_png())
-        if not methods:
-            raise Unsupported(linux.desktop_name())
-        return "+".join(methods)
-    raise Unsupported(sys.platform)
+    """make_ico()/make_png() return bytes (rendered lazily). Every format is always written,
+    whatever the current OS, so the icon travels with the folder. Returns a foldericon.Result."""
+    if not supported():
+        raise Unsupported(sys.platform)
+    return foldericon.apply(folder, make_ico(), make_png())
 
 
 def remove(folder):
-    if IS_WINDOWS:
-        return windows.remove_folder_icon(folder)
-    if IS_LINUX:
-        return linux.remove_folder_icon(folder)
-    raise Unsupported(sys.platform)
+    if not supported():
+        raise Unsupported(sys.platform)
+    return foldericon.remove(folder)

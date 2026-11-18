@@ -35,8 +35,10 @@ uma foto, adicione uma imagem saindo da pasta (ou estampada como emblema), ajust
 - **Luz e sombra**: intensidade e direção da luz, acabamento brilhante, brilho externo, sombra projetada,
   sombreamento interno, papéis dentro, frente de vidro fosco, contorno e aba espelhada.
 - **Exportação** `.ico` (16 a 256 px, você escolhe os tamanhos) e PNG 256 / 512 / 1024 px.
-- **Aplicar numa pasta**: Windows (`desktop.ini`), Linux GNOME Arquivos / Nemo / Caja (metadados GIO) e
-  KDE Dolphin (`.directory`) — e remover depois.
+- **Aplicar numa pasta** em todos os formatos de uma vez, em qualquer sistema — Windows (`desktop.ini`), KDE
+  Dolphin / PCManFM-Qt (`.directory`) e GNOME Arquivos / Nemo / Caja / Thunar (metadados GIO) — para o ícone
+  **viajar junto com a pasta** para pendrives e outros PCs. **Reparar ícones de pastas** restaura tudo com um clique
+  depois de uma cópia que perdeu os ícones.
 - **Predefinições** (`.dosye.json`, com as imagens embutidas); abre também os `.pasta.json` do antigo *Gerador de Pastas*.
 - **Tema noite estrelada neon** com animações suaves que pausam quando a janela fica oculta e podem ser
   desligadas nas Configurações (ou “reduzir efeitos”).
@@ -54,10 +56,10 @@ Baixe em **[Releases](https://github.com/cleitinhodev/dosye/releases/latest)**:
 
 | Sistema | Arquivo | Como usar |
 | --- | --- | --- |
-| Windows 10/11 (64 bits) | `Dosye-1.0.0-windows-x64.exe` | Dois cliques. Arquivo único e portátil, sem instalação. |
-| Linux x86_64 | `Dosye-1.0.0-x86_64.AppImage` | `chmod +x Dosye-*.AppImage && ./Dosye-*.AppImage` |
-| Linux x86_64 | `Dosye-1.0.0-linux-x86_64.tar.gz` | Extraia e rode `./dosye` — ou `./install.sh` para criar o atalho no menu (sem root). |
-| Linux x86_64 | `Dosye-1.0.0-linux-x86_64` | Binário único: `chmod +x` e execute. |
+| Windows 10/11 (64 bits) | `Dosye-1.1.0-windows-x64.exe` | Dois cliques. Arquivo único e portátil, sem instalação. |
+| Linux x86_64 | `Dosye-1.1.0-x86_64.AppImage` | `chmod +x Dosye-*.AppImage && ./Dosye-*.AppImage` |
+| Linux x86_64 | `Dosye-1.1.0-linux-x86_64.tar.gz` | Extraia e rode `./dosye` — ou `./install.sh` para criar o atalho no menu (sem root). |
+| Linux x86_64 | `Dosye-1.1.0-linux-x86_64` | Binário único: `chmod +x` e execute. |
 
 > **SmartScreen do Windows:** o executável ainda não tem assinatura digital, então o Windows pode mostrar
 > “O Windows protegeu o computador”. Clique em **Mais informações → Executar assim mesmo**.
@@ -76,12 +78,40 @@ Pacotes: `pip install -r requirements-dev.txt` e depois `bash scripts/build_linu
 `bash scripts/build_windows.sh` (no Windows pelo Git Bash, ou no Linux via Wine). Ao enviar uma tag `v*`, o
 GitHub Actions compila os dois sistemas e anexa os arquivos à release.
 
+## Ícones de pasta que viajam
+
+Ao aplicar um ícone — no Windows ou no Linux — o Dosye grava **todos os formatos dentro da pasta**:
+
+| Arquivo | Usado por |
+| --- | --- |
+| `.dosye_icon_<n>.ico` (oculto) + `desktop.ini` com `IconResource` *relativo* | Explorador do Windows |
+| `.dosye_icon_<n>.png` (oculto) + `.directory` com `Icon=./…` | KDE Dolphin, PCManFM-Qt |
+| metadado GIO `metadata::custom-icon` (no Linux) | GNOME Arquivos (Nautilus), Nemo, Caja, Thunar |
+
+O Windows só lê o `desktop.ini` enquanto a **pasta** tem o atributo Somente leitura/Sistema. O Dosye define esse
+atributo no Windows, e também no Linux quando a pasta está num disco **FAT32, exFAT (Linux 6.7+) ou NTFS**. Algumas
+cópias perdem esse atributo, e os gerenciadores da família GNOME guardam o ícone em cada computador. Resumo:
+
+| Situação | Windows | KDE Dolphin / PCManFM-Qt | GNOME Arquivos / Nemo / Caja / Thunar |
+| --- | --- | --- | --- |
+| Ícone aplicado pelo Dosye direto no pendrive (do Windows ou do Linux), aberto em outro PC | ✅ | ✅ | 🔧 uma vez por PC |
+| Pasta copiada Windows → pendrive → Windows pelo Explorador | ✅ se o atributo sobreviveu; senão 🔧 | ✅ | 🔧 |
+| Pasta copiada com `xcopy /E /H /K` (mantém atributos) | ✅ | ✅ | 🔧 |
+| Pasta copiada de um disco Linux (ext4/btrfs) para o Windows | 🔧 | ✅ | 🔧 |
+| Windows → Linux | — | ✅ | 🔧 |
+| zip, OneDrive / Google Drive / Dropbox (o Dropbox ignora o `desktop.ini`) | 🔧 | ✅ se os ocultos forem mantidos | 🔧 |
+
+🔧 = clique em **Reparar ícones de pastas…** e escolha a pasta ou o disco inteiro: o Dosye varre todas as subpastas,
+recria o que faltar (`.ico` ↔ `.png`), devolve o atributo e atualiza o metadado GIO. Sem janela:
+`dosye --repair /media/eu/PENDRIVE` (ou `Dosye.exe --repair E:\`). Pastas feitas pelo Dosye 1.0 e pelo *Gerador de
+Pastas* também são atualizadas pelo reparo, e *Remover ícone de uma pasta* apaga todos os formatos.
+
+Nenhum truque faz o Windows ler o `desktop.ini` sem esse atributo (o autorun é desativado no Windows moderno por
+segurança), então o reparo de um clique é o caminho confiável depois de uma cópia que o perdeu.
+
 ## Notas para Linux
 
-- “Aplicar ícone em uma pasta” grava um `.dosye_icon_*.png` oculto na pasta e o define para **GNOME Arquivos,
-  Nemo e Caja** (`gio set … metadata::custom-icon`) e para o **KDE Dolphin** (arquivo `.directory`).
-- Thunar, PCManFM e outros não suportam ícone por pasta; nesse caso o Dosye avisa — exporte um PNG e defina no
-  seu gerenciador de arquivos.
+- PCManFM (GTK) e outros gerenciadores sem ícone por pasta mostram a pasta normal.
 - Japonês, chinês e coreano precisam de uma fonte CJK (ex.: `fonts-noto-cjk`).
 
 ## Idiomas e traduções
