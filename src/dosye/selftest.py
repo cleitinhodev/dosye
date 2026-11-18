@@ -62,6 +62,17 @@ def _overflow_buttons(root):
     return out
 
 
+def _rmtree(path):
+    """shutil.rmtree that first clears Read-only/Hidden/System (Windows refuses otherwise)."""
+    import shutil
+    from .system import dosattr
+    for dp, dns, fns in os.walk(path):
+        for n in dns + fns:
+            dosattr.clear(os.path.join(dp, n))
+    dosattr.clear(path)
+    shutil.rmtree(path, ignore_errors=True)
+
+
 def _folder_tests(w, app, log, out):
     from .system import foldericon as fi, dosattr
     from .ui.dialogs import RepairDialog
@@ -118,7 +129,7 @@ def _folder_tests(w, app, log, out):
     log.check(r3["found"] == 2 and r3["fixed"] == 2 and okA and okB, f"1.0.0 / Gerador de Pastas folders upgraded by repair (scanned {r3['scanned']})")
     # repair dialog (UI) + screenshot
     import shutil
-    shutil.rmtree(os.path.join(a)); os.makedirs(a)
+    _rmtree(a); os.makedirs(a)
     open(os.path.join(a, ".dosye_icon_1700000000.png"), "wb").write(open(os.path.join(d, png[0]), "rb").read())
     dlg = RepairDialog(w, root); dlg.show()
     t0 = time.time()
@@ -136,7 +147,7 @@ def _folder_tests(w, app, log, out):
         ok_rm &= had and not left and not ((dosattr.get(f) or 0) & (dosattr.READONLY | dosattr.SYSTEM))
     log.check(ok_rm, "remove deletes all formats (1.1 and legacy) and clears the folder attribute")
     for f in (d, root):
-        shutil.rmtree(f, ignore_errors=True)
+        _rmtree(f)
 
 
 def run(w, app, out):
