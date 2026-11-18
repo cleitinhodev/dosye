@@ -286,14 +286,25 @@ def gio_get(folder):
     return ""
 
 
+_GIO_UNUSABLE = False     # gio exists but can't store metadata (no gvfsd-metadata, e.g. headless)
+
+
+def gio_usable():
+    return gio_available() and not _GIO_UNUSABLE
+
+
 def _gio_set(folder, png_path):
-    if not gio_available():
+    global _GIO_UNUSABLE
+    if not gio_usable():
         return False
     want = _file_uri(png_path)
     if gio_get(folder) == want:
         return True
     r = _gio("set", folder, "metadata::custom-icon", want)
-    return r is not None and r.returncode == 0
+    ok = r is not None and r.returncode == 0
+    if not ok:
+        _GIO_UNUSABLE = True
+    return ok
 
 
 def _gio_unset_ours(folder):
@@ -444,10 +455,10 @@ def repair_folder(folder):
     stale = [n for n in names if n.rsplit(".", 1)[0] != base]
     attrs = dosattr.get(folder)
     attr_ok = attrs is None or bool(attrs & (dosattr.READONLY | dosattr.SYSTEM))
-    gio_ok = not gio_available() or gio_get(folder) == _file_uri(png_p)
+    gio_ok = not gio_usable() or gio_get(folder) == _file_uri(png_p)
     if ico is None and png is None and not stale and attr_ok and gio_ok and _expected_state_ok(folder, base):
         res.win_attr = attrs is not None; res.win_attr_possible = attrs is not None
-        res.gio = gio_available()
+        res.gio = gio_usable()
         return res
     dosattr.change(folder, remove=dosattr.READONLY)
     for n in stale:
