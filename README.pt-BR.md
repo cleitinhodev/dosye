@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshot-pt_BR.png" alt="Janela principal do Dosye" width="900">
+  <img src="docs/tutorial/assets/shot-main.webp" alt="Janela principal do Dosye" width="900">
 </p>
 
 O Dosye é um programa para criar ícones de pasta. Escolha um dos **51 formatos**, pinte com cores, degradês ou
@@ -44,6 +44,31 @@ uma foto, adicione uma imagem saindo da pasta (ou estampada como emblema), ajust
   desligadas nas Configurações (ou “reduzir efeitos”).
 - **15 idiomas**, troca na hora, detecção automática na primeira execução.
 - Cabe em telas 1366×768, inclusive com escala de 125 %.
+
+## Capturas de tela
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-cover.webp" alt="Image cover (capa de imagem)" width="100%"><br><sub>Image cover (capa de imagem)</sub></td>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-png_coming_out.webp" alt="PNG saindo da pasta" width="100%"><br><sub>PNG saindo da pasta</sub></td>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-emblem.webp" alt="PNG como emblema" width="100%"><br><sub>PNG como emblema</sub></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-effects.webp" alt="Light & shadow (luz e sombra)" width="100%"><br><sub>Light & shadow (luz e sombra)</sub></td>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-export.webp" alt="Export .ico / .png (exportar)" width="100%"><br><sub>Export .ico / .png (exportar)</sub></td>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-apply.webp" alt="Apply icon to a folder (aplicar ícone na pasta)" width="100%"><br><sub>Apply icon to a folder (aplicar ícone na pasta)</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/tutorial/assets/shot-about.webp" alt="Janela Sobre" width="300">
+  <img src="docs/tutorial/assets/shot-settings.webp" alt="Configurações" width="270">
+  <img src="docs/tutorial/assets/shot-help.webp" alt="Ajuda" width="340">
+</p>
+
+Um tutorial ilustrado, passo a passo, nos 15 idiomas está em [`docs/tutorial/`](docs/tutorial/) — baixe a pasta e abra o `index.html` no navegador.
+
+O Dosye também em Kreyòl e japonês:
 
 <p align="center">
   <img src="docs/screenshot-ht.png" alt="Dosye em Kreyòl" width="440">

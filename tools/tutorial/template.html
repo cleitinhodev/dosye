@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<!--
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║  DOSYE — TUTORIAL PAGE · ⚙️ CONFIG: edit ONLY the block below (version, links, paths)  ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
+-->
+<script>
+/* ============================== CONFIG — EDIT HERE ==============================
+ * Everything you may need to change lives in this object. Nothing else in the file
+ * has to be touched.
+ *  - version:   shown on the page and used in the download links below ({version}).
+ *  - downloads: direct file links. "{version}" is replaced by the version above, so for a
+ *               new release you usually only change `version`.
+ *  - links:     main site, repository, releases page, donate page, license.
+ *  - assets:    folder with the images (relative to this HTML file, or an absolute URL).
+ *  - defaultLanguage: used when the visitor's browser language isn't one of the 15.
+ * ================================================================================ */
+window.DOSYE_CONFIG = {
+  version: "1.1.0",
+  downloads: {
+    windows:  "https://github.com/cleitinhodev/dosye/releases/download/v{version}/Dosye-{version}-windows-x64.exe",
+    appimage: "https://github.com/cleitinhodev/dosye/releases/download/v{version}/Dosye-{version}-x86_64.AppImage",
+    targz:    "https://github.com/cleitinhodev/dosye/releases/download/v{version}/Dosye-{version}-linux-x86_64.tar.gz"
+  },
+  links: {
+    site:     "https://www.bugzinho.com/",
+    repo:     "https://github.com/cleitinhodev/dosye",
+    releases: "https://github.com/cleitinhodev/dosye/releases",
+    donate:   "https://www.bugzinho.com/donate",
+    license:  "https://github.com/cleitinhodev/dosye/blob/main/LICENSE"
+  },
+  assets: "assets/",
+  defaultLanguage: "en"
+};
+/* ============================ END OF CONFIG ===================================== */
+</script>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dosye — Tutorial</title>
+<meta name="description" content="Dosye: beautiful custom folder icons for Windows and Linux — tutorial, downloads and links.">
+<meta name="theme-color" content="#0C0F30">
+<link rel="icon" id="fav" type="image/png" href="assets/favicon.png">
+<style>
+:root{
+  --bg:#070A24; --bg2:#0C0F30; --card:rgba(22,26,80,.55); --line:rgba(150,140,255,.22);
+  --text:#ECEBFF; --muted:#A9ADDB; --violet:#8B5CFF; --indigo:#5B3FD8; --lilac:#C084FC;
+  --gold:#FFC93C; --gold2:#FFE08A; --cyan:#6FC3FF; --pink:#FF6BCB; --ok:#5EE6A8;
+  --r:18px; --maxw:1180px;
+  --font: "Inter","Segoe UI",system-ui,-apple-system,"Noto Sans","Noto Sans JP","Noto Sans SC","Noto Sans KR","Hiragino Sans","Microsoft YaHei","Malgun Gothic",sans-serif;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 var(--font);overflow-x:hidden}
+a{color:var(--cyan);text-decoration:none} a:hover{text-decoration:underline}
+img{max-width:100%;height:auto;display:block}
+code,kbd{font-family:ui-monospace,"Cascadia Code",Consolas,monospace;font-size:.88em;background:rgba(139,92,255,.16);border:1px solid var(--line);padding:.1em .4em;border-radius:6px}
+/* ---------- starfield ---------- */
+#sky{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(1200px 700px at 80% -10%,rgba(139,92,255,.28),transparent 60%),
+  radial-gradient(900px 600px at -10% 30%,rgba(91,63,216,.30),transparent 60%),
+  radial-gradient(800px 500px at 60% 110%,rgba(255,201,60,.10),transparent 60%),
+  linear-gradient(180deg,#070A24,#0C0F30 40%,#0A0D2A)}
+#stars{position:fixed;inset:0;z-index:-1;pointer-events:none}
+.star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;box-shadow:0 0 6px #fff;opacity:.7;animation:tw 4s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1.2)}}
+/* ---------- header ---------- */
+header.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(7,10,36,.6);border-bottom:1px solid var(--line)}
+.bar{max-width:var(--maxw);margin:auto;display:flex;align-items:center;gap:18px;padding:10px 20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;color:var(--text)}
+.brand img{width:38px;height:38px;filter:drop-shadow(0 0 10px rgba(139,92,255,.7))}
+.brand span{background:linear-gradient(90deg,#fff,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav.links{display:flex;gap:16px;margin-left:auto}
+nav.links a{color:var(--muted);font-weight:600;font-size:15px} nav.links a:hover{color:var(--text);text-decoration:none}
+.langsel{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}
+select{background:#141850;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit;cursor:pointer}
+select:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border-radius:14px;font-weight:800;color:#fff;border:1px solid var(--line);background:rgba(27,32,96,.7);transition:transform .2s,box-shadow .2s,background .2s;cursor:pointer}
+.btn:hover{text-decoration:none;transform:translateY(-2px);box-shadow:0 10px 30px rgba(139,92,255,.35)}
+.btn.primary{background:linear-gradient(135deg,var(--indigo),var(--violet) 60%,var(--lilac));border-color:transparent;box-shadow:0 0 0 1px rgba(255,255,255,.08) inset,0 8px 30px rgba(139,92,255,.45)}
+.btn.gold{background:linear-gradient(135deg,var(--gold),#FFB020);color:#2A1800;border-color:transparent;box-shadow:0 8px 30px rgba(255,201,60,.35)}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.small{padding:8px 14px;font-size:14px;border-radius:11px}
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:min(92vh,860px);display:flex;align-items:center;overflow:hidden;isolation:isolate}
+.hero-bg{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;transform:scale(1.08);filter:saturate(1.1)}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;background:
+  linear-gradient(90deg,rgba(7,10,36,.95) 0%,rgba(7,10,36,.78) 42%,rgba(12,15,48,.35) 75%,rgba(12,15,48,.55)),
+  linear-gradient(180deg,rgba(7,10,36,.2),rgba(7,10,36,.1) 60%,var(--bg))}
+.hero-in{max-width:var(--maxw);margin:auto;padding:70px 20px 90px;display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;width:100%}
+.kicker{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.35);padding:6px 12px;border-radius:99px}
+h1.title{font-size:clamp(54px,9vw,112px);line-height:.95;margin:.25em 0 .15em;font-weight:900;letter-spacing:-.02em;
+  background:linear-gradient(100deg,#fff 10%,var(--gold2) 45%,var(--lilac) 80%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 28px rgba(139,92,255,.55))}
+.tagline{font-size:clamp(18px,2.2vw,23px);color:#D9D8FF;max-width:560px;margin:0 0 10px}
+.meaning{color:var(--muted);font-size:15px;margin:0 0 26px}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+.ver{margin-top:18px;color:var(--muted);font-size:14px}
+.ver b{color:var(--gold2)}
+.hero-art{position:relative;display:grid;place-items:center;min-height:380px}
+.hero-art .halo{position:absolute;width:78%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(139,92,255,.55),rgba(255,201,60,.12) 55%,transparent 70%);filter:blur(10px);animation:breathe 6s ease-in-out infinite}
+.hero-art img.folder{position:relative;width:min(440px,100%);filter:drop-shadow(0 30px 50px rgba(0,0,0,.55));animation:float 7s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-16px) rotate(1deg)}}
+@keyframes breathe{0%,100%{opacity:.75;transform:scale(.95)}50%{opacity:1;transform:scale(1.05)}}
+.scroll-cue{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:26px;height:42px;border:2px solid rgba(255,255,255,.45);border-radius:14px}
+.scroll-cue::after{content:"";position:absolute;left:50%;top:8px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:var(--gold);animation:cue 1.8s infinite}
+@keyframes cue{0%{opacity:0;transform:translateY(0)}40%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
+/* ---------- sections ---------- */
+main{position:relative}
+section.block{max-width:var(--maxw);margin:auto;padding:80px 20px}
+.sec-head{text-align:center;margin-bottom:40px}
+.sec-head h2{font-size:clamp(32px,4.5vw,48px);margin:0 0 6px;font-weight:900;background:linear-gradient(90deg,#fff,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sec-head p{color:var(--muted);margin:0;font-size:18px}
+.glow-line{height:2px;width:120px;margin:16px auto 0;border-radius:2px;background:linear-gradient(90deg,transparent,var(--violet),var(--gold),transparent);box-shadow:0 0 14px var(--violet)}
+/* downloads */
+.dl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:transform .25s,border-color .25s,box-shadow .25s}
+.card:hover{transform:translateY(-4px);border-color:rgba(192,132,252,.6);box-shadow:0 20px 50px rgba(91,63,216,.35),0 0 0 1px rgba(192,132,252,.25) inset}
+.card h3{margin:6px 0 4px;font-size:21px}
+.card .os{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gold2)}
+.card p{color:var(--muted);margin:0 0 18px;font-size:15px}
+.card .file{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:#cfcfff;word-break:break-all;margin-bottom:14px;opacity:.85}
+.note{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.note .card{padding:20px}
+.note h4{margin:0 0 6px;font-size:17px;color:var(--gold2)}
+.note p{margin:0;color:var(--muted);font-size:15px}
+pre.cmd{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0;background:rgba(5,7,26,.7);border:1px solid var(--line);border-radius:12px;padding:12px 14px;overflow:auto;font:13px/1.5 ui-monospace,Consolas,monospace;color:#d8d6ff}
+.all-rel{text-align:center;margin-top:18px}
+/* tutorial steps */
+.step>.after{grid-column:1/-1;margin-top:-14px}
+.step>.after table{min-width:640px}
+.step>*,.note>*,.dl-grid>*,.links-grid>*,.shots>*{min-width:0}
+.step{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:40px;align-items:center;padding:46px 0;border-top:1px solid rgba(150,140,255,.12)}
+.step:nth-child(even) .txt{order:2}
+.num{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:14px;font-weight:900;color:#1a1033;background:linear-gradient(135deg,var(--gold2),var(--gold));box-shadow:0 0 24px rgba(255,201,60,.45);margin-bottom:12px}
+.step h3{font-size:clamp(24px,3vw,32px);margin:0 0 10px;line-height:1.2}
+.step .body{color:#D3D2F5}
+.step .body p{margin:0 0 12px}
+.step .body b{color:#fff}
+.nat{color:var(--gold2);font-weight:500}
+.ui{white-space:normal}
+.ui b{color:#fff;font-weight:800}
+.where{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0 4px;font-size:14px;color:var(--muted)}
+.where .lbl{font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:12px;color:var(--lilac);margin-right:4px}
+.chip{display:inline-block;padding:4px 10px;border-radius:9px;background:rgba(139,92,255,.16);border:1px solid rgba(192,132,252,.35);color:#fff;font-size:13.5px}
+.chip .nat{font-size:12.5px}
+.arrow{color:var(--gold)}
+.ctrls{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.shot{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 40px rgba(139,92,255,.18);cursor:zoom-in;background:#0b0e2c;transition:transform .35s,box-shadow .35s}
+.shot:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 40px 90px rgba(0,0,0,.55),0 0 60px rgba(139,92,255,.35)}
+.shot figcaption{position:absolute;right:10px;bottom:10px;font-size:12px;background:rgba(7,10,36,.75);padding:3px 9px;border-radius:8px;color:var(--muted);opacity:0;transition:opacity .25s}
+.shot:hover figcaption{opacity:1}
+.shots{display:grid;gap:14px}
+.shots.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.dialog-shot{max-width:520px;margin:auto}
+ul.settings{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:10px}
+ul.settings li{background:rgba(22,26,80,.5);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+ul.settings li .d{color:var(--muted);font-size:15px}
+/* table */
+.tbl-wrap{margin-top:26px;overflow-x:auto;border-radius:16px;border:1px solid var(--line);background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.5px}
+th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid rgba(150,140,255,.14)}
+th{background:rgba(91,63,216,.35);color:#fff;font-weight:800;position:sticky;top:0}
+tr:last-child td{border-bottom:none}
+td.c{white-space:nowrap} td .y{color:var(--ok);font-weight:700} td .r{color:var(--gold2);font-weight:700}
+.legend{margin:12px 2px 0;color:var(--muted);font-size:14px}
+.kbd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:14px}
+.kbd-grid div{display:flex;justify-content:space-between;gap:10px;background:rgba(22,26,80,.5);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px}
+/* links */
+.links-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.links-grid a.card{display:block;color:var(--text);text-decoration:none}
+.links-grid .ico{font-size:28px;filter:drop-shadow(0 0 10px rgba(255,201,60,.5))}
+.links-grid h3{font-size:18px}
+.links-grid p{margin:0;font-size:14px;word-break:break-all}
+footer{border-top:1px solid var(--line);padding:30px 20px 40px;text-align:center;color:var(--muted);font-size:14px}
+footer img{width:46px;margin:0 auto 10px;filter:drop-shadow(0 0 12px rgba(139,92,255,.6))}
+.totop{position:fixed;right:18px;bottom:18px;z-index:40;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;border:none;box-shadow:0 8px 24px rgba(139,92,255,.5);opacity:0;pointer-events:none;transition:opacity .3s;cursor:pointer;font-size:20px}
+.totop.show{opacity:1;pointer-events:auto}
+/* decorative character */
+.deco-char{position:absolute;right:max(0px,calc(50% - 760px));top:-60px;width:min(300px,28vw);opacity:.9;pointer-events:none;filter:drop-shadow(0 0 30px rgba(139,92,255,.45));animation:float 9s ease-in-out infinite}
+/* lightbox */
+#lb{position:fixed;inset:0;z-index:100;background:rgba(4,6,20,.9);display:none;align-items:center;justify-content:center;padding:24px;cursor:zoom-out}
+#lb.open{display:flex}
+#lb img{max-width:min(1400px,96vw);max-height:92vh;width:auto;border-radius:12px;box-shadow:0 0 60px rgba(139,92,255,.45)}
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(34px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.rv.d1{transition-delay:.08s}.rv.d2{transition-delay:.16s}.rv.d3{transition-delay:.24s}
+/* responsive */
+@media (max-width:960px){
+  .hero-in{grid-template-columns:1fr;text-align:center;padding-top:40px}
+  .hero-art{min-height:280px;order:-1} .hero-art img.folder{width:min(300px,70vw)}
+  .ctas{justify-content:center} .tagline{margin-left:auto;margin-right:auto}
+  .step{grid-template-columns:1fr;gap:22px} .step:nth-child(even) .txt{order:0}
+  .dl-grid,.links-grid{grid-template-columns:1fr 1fr} .note{grid-template-columns:1fr}
+  nav.links{display:none} .deco-char{display:none}
+}
+@media (max-width:600px){
+  .dl-grid,.links-grid,.shots.two{grid-template-columns:1fr}
+  section.block{padding:56px 16px} .bar{padding:8px 14px;gap:10px} .brand{font-size:19px}
+  .langsel span{display:none} .btn{padding:12px 18px}
+}
+/* reduced motion: no animation, everything visible */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .rv{opacity:1;transform:none}
+  .hero-bg{transform:none}
+}
+</style>
+</head>
+<body>
+<div id="sky"></div><div id="stars" aria-hidden="true"></div>
+<header class="top">
+  <div class="bar">
+    <a class="brand" href="#top"><img id="brandIcon" alt="" width="38" height="38"><span>Dosye</span></a>
+    <nav class="links"><a href="#download" data-t="nav_download"></a><a href="#tutorial" data-t="nav_tutorial"></a><a href="#links" data-t="nav_links"></a></nav>
+    <label class="langsel"><span data-t="lang_label"></span>
+      <select id="lang" aria-label="Language"></select></label>
+  </div>
+</header>
+<main id="top">
+  <section class="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-in">
+      <div class="rv">
+        <span class="kicker">✦ <span data-t="kicker"></span></span>
+        <h1 class="title">Dosye</h1>
+        <p class="tagline" id="tagline"></p>
+        <p class="meaning" data-t="meaning"></p>
+        <div class="ctas">
+          <a class="btn primary" id="ctaWin" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3zm0 13 7.5 1.1v-7H3zm8.4 1.2L21 21v-8.4h-9.6zm0-15.4v7.2H21V3z"/></svg><span data-t="cta_windows"></span></a>
+          <a class="btn gold" id="ctaLinux" href="#download"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-2.2 0-3.6 1.9-3.6 4.6 0 1.4.3 2.3-.6 3.7C6.4 12.4 5 14.4 5 17c0 .6.1 1.2.4 1.7-.7.4-1.4.9-1.4 1.6 0 1.4 2.6 1.7 4.4 1.7 1.2 0 2.4-.5 3.6-.5s2.4.5 3.6.5c1.8 0 4.4-.3 4.4-1.7 0-.7-.7-1.2-1.4-1.6.3-.5.4-1.1.4-1.7 0-2.6-1.4-4.6-2.8-6.7-.9-1.4-.6-2.3-.6-3.7C15.6 3.9 14.2 2 12 2zm-1.6 4.2c.4 0 .7.5.7 1.1s-.3 1.1-.7 1.1-.7-.5-.7-1.1.3-1.1.7-1.1zm3.2 0c.4 0 .7.5.7 1.1s-.3 1.1-.7 1.1-.7-.5-.7-1.1.3-1.1.7-1.1zM12 9.3c.9 0 2 .5 2 .9s-1.1 1-2 1-2-.6-2-1 1.1-.9 2-.9z"/></svg><span data-t="cta_linux"></span></a>
+          <a class="btn" id="ctaGit" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17.3 4.8 18.3 5.1 18.3 5.1c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg><span data-t="cta_github"></span></a>
+        </div>
+        <div class="ver"><span data-t="version"></span> <b class="vnum"></b> · Windows 10/11 · Linux x86_64 · GPL-3.0</div>
+      </div>
+      <div class="hero-art rv d2"><div class="halo"></div><img class="folder" id="heroFolder" alt="Dosye folder icon"></div>
+    </div>
+    <div class="scroll-cue" aria-hidden="true"></div>
+  </section>
+
+  <section class="block" id="download">
+    <div class="sec-head rv"><h2 data-t="dl_title"></h2><p data-t="dl_sub"></p><div class="glow-line"></div></div>
+    <div class="dl-grid">
+      <div class="card rv"><div class="os">Windows</div><h3>.exe</h3><p data-t="dl_exe"></p><div class="file" id="fWin"></div><a class="btn primary small" id="dWin" href="#">⬇ <span data-t="nav_download"></span></a></div>
+      <div class="card rv d1"><div class="os">Linux</div><h3>AppImage</h3><p data-t="dl_appimage"></p><div class="file" id="fApp"></div><a class="btn primary small" id="dApp" href="#">⬇ <span data-t="nav_download"></span></a></div>
+      <div class="card rv d2"><div class="os">Linux</div><h3>.tar.gz</h3><p data-t="dl_targz"></p><div class="file" id="fTar"></div><a class="btn primary small" id="dTar" href="#">⬇ <span data-t="nav_download"></span></a></div>
+    </div>
+    <div class="note">
+      <div class="card rv"><h4>🛡️ <span data-t="smart_title"></span></h4><p id="smart"></p></div>
+      <div class="card rv d1"><h4>🐧 <span data-t="linux_cmd"></span></h4><pre class="cmd" id="linuxCmd"></pre></div>
+    </div>
+    <div class="all-rel rv"><a class="btn small" id="relLink" href="#">📦 <span data-t="dl_all"></span></a></div>
+  </section>
+
+  <section class="block" id="tutorial" style="position:relative">
+    <img class="deco-char" id="decoChar" alt="" aria-hidden="true">
+    <div class="sec-head rv"><h2 data-t="tut_title"></h2><p data-t="tut_sub"></p><div class="glow-line"></div></div>
+    <div id="steps"></div>
+  </section>
+
+  <section class="block" id="links">
+    <div class="sec-head rv"><h2 data-t="links_title"></h2><div class="glow-line"></div></div>
+    <div class="links-grid" id="linksGrid"></div>
+  </section>
+</main>
+<footer><img id="footIcon" alt="" width="46" height="46"><div data-t="footer"></div><div style="margin-top:6px"><a id="footSite" href="#"></a></div></footer>
+<button class="totop" id="totop" aria-label="Top">↑</button>
+<div id="lb" role="dialog" aria-modal="true"><img alt=""></div>
+
+<script>
+(function(){
+"use strict";
+const C = window.DOSYE_CONFIG;
+const DATA = /*__DATA__*/{};
+const EN = /*__EN_UI__*/{};
+const SIZES = /*__SIZES__*/{};
+const SHORTCUTS = /*__SHORTCUTS__*/[];
+const ORDER = ["ht","fr","gcf","mfe","en","pt_BR","es","de","it","pl","tr","ru","ja","zh_CN","ko"];
+const A = f => C.assets + f;
+const V = s => s.replace(/\{version\}/g, C.version);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const strip = s => s.replace(/…$/,"").replace(/:$/,"");
+let L = "en", D = DATA.en;
+
+function pickLanguage(){
+  const q = new URLSearchParams(location.search).get("lang");
+  const saved = (()=>{ try { return localStorage.getItem("dosye-tutorial-lang"); } catch(e){ return null; } })();
+  const want = [q, saved, ...(navigator.languages || [navigator.language || ""])].filter(Boolean);
+  for (const w of want){
+    const n = w.replace("-","_");
+    if (DATA[n]) return n;
+    const lo = n.toLowerCase();
+    for (const k of ORDER){ if (k.toLowerCase() === lo) return k; }
+    const base = lo.split("_")[0];
+    if (base === "pt") return "pt_BR";
+    if (base === "zh") return "zh_CN";
+    for (const k of ORDER){ if (k.toLowerCase().split("_")[0] === base) return k; }
+  }
+  return DATA[C.defaultLanguage] ? C.defaultLanguage : "en";
+}
+const P = k => (D.page[k] ?? DATA.en.page[k] ?? k);
+/* UI term: English label first, native label in parentheses (only when different) */
+function ui(key, cls){
+  const en = strip(EN[key] || key), nat = strip(D.ui[key] || en);
+  const n = (L !== "en" && nat.toLowerCase() !== en.toLowerCase()) ? ` <span class="nat">(${esc(nat)})</span>` : "";
+  return `<span class="${cls || "ui"}"><b>${esc(en)}</b>${n}</span>`;
+}
+const chip = k => ui(k, "chip");
+function fill(str, map){ return esc(str).replace(/\{(\w+)\}/g, (m, k) => map[k] !== undefined ? map[k] : m); }
+function winTerm(i){
+  const en = DATA.en.win[i], nat = D.win[i];
+  return `<b>${esc(en)}</b>` + (nat !== en ? ` <span class="nat">(${esc(nat)})</span>` : "");
+}
+function shot(name, alt, cls){
+  const s = SIZES[name] || [1366, 768];
+  return `<figure class="shot ${cls||""}" data-full="${A("shot-"+name+".webp")}"><img loading="lazy" decoding="async" src="${A("shot-"+name+".webp")}" width="${s[0]}" height="${s[1]}" alt="${esc(alt)}"><figcaption>🔍 ${esc(P("shot_hint"))}</figcaption></figure>`;
+}
+const where = keys => `<div class="where"><span class="lbl">${esc(P("where"))}</span>${keys.map(chip).join(' <span class="arrow">›</span> ')}</div>`;
+const ctrls = keys => `<div class="where"><span class="lbl">${esc(P("controls"))}</span></div><div class="ctrls">${keys.map(chip).join("")}</div>`;
+const H = (sec, part) => D.help[sec + "." + part];
+
+function steps(){
+  const S = [];
+  S.push({t: P("s_first"), body: `<p>${esc(P("first_text"))}</p><p>${H("start","body")}</p>`, shots: [["main","Dosye main window"]]});
+  S.push({t: H("shapes","title"), body: `<p>${H("shapes","body")}</p>` + where(["shapes.title"]) + ctrls(["cat.all","cat.classic","cat.modern","cat.retro","cat.office","cat.fun","cat.special","shapes.search","hdr.surprise"]), shots: [["shapes","Shapes and categories"]]});
+  S.push({t: P("s_colors"), body: `<p>${fill(P("colors_text"), {fill: ui("fill.title"), color: ui("fill.color")})}</p>` + ctrls(["color.main","color.gradient","color.second","color.angle","color.palette"]), shots: [["colors","Colours and gradient"]]});
+  S.push({t: H("effects","title"), body: `<p>${H("effects","body")}</p>` + where(["light.title"]) + ctrls(["light.intensity","light.dir","light.gloss","light.glow","shadow.drop","shadow.inner","details.papers","details.glass","details.border","details.mirror"]), shots: [["effects","Light and shadow"]]});
+  S.push({t: H("fill","title"), body: `<p>${H("fill","body")}</p>` + where(["fill.title","fill.image","cover.choose"]) + ctrls(["cover.examples","cover.apply_to","fit.cobrir","fit.ajustar","fit.lado","cover.zoom","cover.tint","cover.blend","cover.back_dark"]), shots: [["cover","Image cover"]]});
+  S.push({t: H("png","title"), body: `<p>${H("png","body")}</p>` + where(["png.title","png.load"]) + ctrls(["png.inside","png.front","png.scale","png.rot","png.shadow","png.emblem_style","emblem.original","emblem.gravado","emblem.branco"]), shots: [["png_coming_out","PNG coming out of the folder"],["emblem","PNG as an emblem"]], two: true});
+  S.push({t: H("export","title"), body: `<p>${H("export","body")}</p>` + ctrls(["export.ico","export.png","settings.ico_sizes","settings.png_size"]), shots: [["export","Export"]]});
+  S.push({t: H("folder","title"), body: `<p>${H("folder","body")}</p>` + ctrls(["export.apply","export.remove"]), shots: [["apply","Apply icon to a folder"]]});
+  const R = (k)=>P(k);
+  const y = `<span class="y">✅ ${esc(R("c_auto"))}</span>`, rp = t => `<span class="r">🔧 ${esc(t)}</span>`;
+  const rows = [["r1", y, y, rp(R("c_once"))], ["r2", rp(R("c_maybe")), y, rp(R("c_repair"))], ["r3", y, y, rp(R("c_repair"))],
+                ["r4", rp(R("c_repair")), y, rp(R("c_repair"))], ["r5", "—", y, rp(R("c_repair"))], ["r6", rp(R("c_repair")), y + `<br><small>${esc(R("c_hidden"))}</small>`, rp(R("c_repair"))]];
+  const table = `<h4 style="margin:22px 0 0;font-size:19px">${esc(R("tbl_title"))}</h4><div class="tbl-wrap"><table><thead><tr><th>${esc(R("tbl_situation"))}</th><th>${esc(R("tbl_win"))}</th><th>${esc(R("tbl_kde"))}</th><th>${esc(R("tbl_gnome"))}</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${esc(R(r[0]))}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("") +
+    `</tbody></table></div><p class="legend">${fill(R("legend"), {repair: ui("export.repair")})}</p>`;
+  S.push({t: H("repair","title"), body: `<p>${H("repair","body")}</p>` + where(["export.repair"]) + `<p style="margin-top:10px"><code>dosye --repair /media/me/PENDRIVE</code> · <code>Dosye.exe --repair E:\\</code></p>`, shots: [["repair","Repair folder icons"]], dialog: true, after: table});
+  S.push({t: H("presets","title"), body: `<p>${H("presets","body")}</p>` + ctrls(["hdr.open","hdr.save","hdr.reset","hdr.surprise"]), shots: []});
+  const st = [["settings.language","st_lang"],["settings.animations","st_anim"],["settings.reduce","st_reduce"],["settings.intensity","st_intensity"],["settings.export","st_export"]];
+  S.push({title_ui: "settings.title",
+          body: `<p>${fill(P("settings_text"), {settings: ui("hdr.settings")})}</p><ul class="settings">` + st.map(([k,d]) => `<li>${ui(k)}<div class="d">${esc(P(d))}</div></li>`).join("") + `</ul>`,
+          shots: [["settings","Settings dialog"]], dialog: true});
+  const kb = `<h4 style="margin:18px 0 0">${esc(D.ui["help.shortcuts.title"])}</h4><div class="kbd-grid">` + SHORTCUTS.map(([k, a]) => `<div><span>${ui(a)}</span><kbd>${esc(k)}</kbd></div>`).join("") + `</div>`;
+  S.push({t: null, title_html: `${ui("hdr.help")} &amp; ${ui("hdr.about")}`, body: `<p>${fill(P("about_text"), {help: ui("hdr.help"), about: ui("hdr.about")})}</p><p>${esc(D.ui["about.desc"])}</p>` + kb,
+          shots: [["about","About dialog"],["help","Help dialog"]], two: true});
+  return S;
+}
+
+function render(){
+  D = DATA[L]; document.documentElement.lang = L.replace("_","-");
+  document.querySelectorAll("[data-t]").forEach(e => e.textContent = P(e.dataset.t));
+  document.getElementById("tagline").textContent = D.ui["app.tagline"];
+  document.querySelectorAll(".vnum").forEach(e => e.textContent = C.version);
+  document.getElementById("smart").innerHTML = fill(P("smart_body"), {more: winTerm(0), run: winTerm(1)});
+  const html = steps().map((s, i) => {
+    const title = s.title_html || (s.title_ui ? ui(s.title_ui) : s.t);
+    const shots = s.shots.length ? `<div class="shots ${s.two ? "two" : ""} rv d1">${s.shots.map(([n, alt]) => shot(n, alt, s.dialog ? "dialog-shot" : "")).join("")}</div>` : `<div class="rv d1" style="display:grid;place-items:center"><img src="${A("design-emblem.webp")}" width="300" height="300" alt="" style="width:min(300px,70%);filter:drop-shadow(0 20px 40px rgba(0,0,0,.5)) drop-shadow(0 0 30px rgba(139,92,255,.35))"></div>`;
+    return `<article class="step" id="step-${i+1}"><div class="txt rv"><div class="num">${i+1}</div><h3>${title}</h3><div class="body">${s.body}</div></div>${shots}${s.after ? `<div class="after rv">${s.after}</div>` : ""}</article>`;
+  }).join("");
+  document.getElementById("steps").innerHTML = html;
+  const lk = [["🌐","l_site",C.links.site],["💻","l_repo",C.links.repo],["📦","l_releases",C.links.releases],["💜","l_donate",C.links.donate]];
+  document.getElementById("linksGrid").innerHTML = lk.map(([i,k,u],n) => `<a class="card rv d${n%3}" href="${esc(u)}" target="_blank" rel="noopener"><div class="ico">${i}</div><h3>${esc(P(k))}</h3><p>${esc(u.replace(/^https?:\/\//,""))}</p></a>`).join("");
+  bindShots(); reveal();
+}
+
+function setup(){
+  const fav = document.getElementById("fav"); fav.href = A("favicon.png");
+  ["brandIcon","footIcon"].forEach(id => document.getElementById(id).src = A("dosye-icon.webp"));
+  document.getElementById("heroBg").style.backgroundImage = `url("${A("hero-bg.webp")}")`;
+  const hf = document.getElementById("heroFolder"); hf.src = A("design-hero.webp"); hf.width = 512; hf.height = 512;
+  const dc = document.getElementById("decoChar");
+  if (SIZES.character){ dc.src = A("character.webp"); } else { dc.remove(); }
+  const dl = {Win: V(C.downloads.windows), App: V(C.downloads.appimage), Tar: V(C.downloads.targz)};
+  for (const k in dl){ document.getElementById("d"+k).href = dl[k]; document.getElementById("f"+k).textContent = dl[k].split("/").pop(); }
+  document.getElementById("ctaWin").href = dl.Win;
+  document.getElementById("ctaGit").href = C.links.repo;
+  document.getElementById("relLink").href = C.links.releases;
+  const fs = document.getElementById("footSite"); fs.href = C.links.site; fs.textContent = C.links.site.replace(/^https?:\/\//,"").replace(/\/$/,"");
+  const app = dl.App.split("/").pop(), tar = dl.Tar.split("/").pop();
+  document.getElementById("linuxCmd").textContent = `chmod +x ${app}\n./${app}\n\n# tar.gz\ntar xzf ${tar}\ncd Dosye-*/ && ./dosye      # ./install.sh = menu entry`;
+  const sel = document.getElementById("lang");
+  sel.innerHTML = ORDER.map(k => `<option value="${k}">${esc(DATA[k].ui._language)}</option>`).join("");
+  L = pickLanguage(); sel.value = L;
+  sel.addEventListener("change", () => { L = sel.value; try { localStorage.setItem("dosye-tutorial-lang", L); } catch(e){} render(); });
+  // stars
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const box = document.getElementById("stars"), n = innerWidth < 700 ? 40 : 90;
+  for (let i = 0; i < n; i++){
+    const s = document.createElement("i"); s.className = "star";
+    s.style.left = Math.random()*100 + "%"; s.style.top = Math.random()*100 + "%";
+    const z = Math.random() < .15 ? 3 : (Math.random() < .5 ? 2 : 1); s.style.width = s.style.height = z + "px";
+    s.style.animationDelay = (-Math.random()*4) + "s"; s.style.animationDuration = (3 + Math.random()*4) + "s";
+    if (Math.random() < .2) s.style.background = s.style.boxShadow = Math.random() < .5 ? "#FFE08A" : "#C084FC";
+    if (Math.random() < .2) s.style.boxShadow = `0 0 8px ${s.style.background || "#fff"}`;
+    box.appendChild(s);
+  }
+  // hero parallax (skipped with reduced motion)
+  if (!reduce){
+    const bg = document.getElementById("heroBg");
+    addEventListener("scroll", () => { const y = scrollY; if (y < 1000) bg.style.transform = `scale(1.08) translateY(${y*0.25}px)`; }, {passive:true});
+  }
+  const tt = document.getElementById("totop");
+  addEventListener("scroll", () => tt.classList.toggle("show", scrollY > 700), {passive:true});
+  tt.addEventListener("click", () => scrollTo({top:0, behavior: reduce ? "auto" : "smooth"}));
+  const lb = document.getElementById("lb");
+  lb.addEventListener("click", () => lb.classList.remove("open"));
+  addEventListener("keydown", e => { if (e.key === "Escape") lb.classList.remove("open"); });
+}
+function bindShots(){
+  const lb = document.getElementById("lb");
+  document.querySelectorAll(".shot").forEach(f => f.addEventListener("click", () => { lb.querySelector("img").src = f.dataset.full; lb.querySelector("img").alt = f.querySelector("img").alt; lb.classList.add("open"); }));
+}
+let io = null;
+function reveal(){
+  const els = document.querySelectorAll(".rv:not(.in)");
+  if (!("IntersectionObserver" in window) || matchMedia("(prefers-reduced-motion: reduce)").matches){ els.forEach(e => e.classList.add("in")); return; }
+  io = io || new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin: "0px 0px -8% 0px", threshold: .08});
+  els.forEach(e => io.observe(e));
+}
+setup(); render();
+})();
+</script>
+<noscript><p style="text-align:center;padding:30px">Dosye — <a href="https://github.com/cleitinhodev/dosye">github.com/cleitinhodev/dosye</a></p></noscript>
+</body>
+</html>

@@ -23,13 +23,14 @@
   <a href="#download">Download</a> ·
   <a href="#features">Features</a> ·
   <a href="#build-from-source">Build</a> ·
+  <a href="docs/tutorial/">Tutorial</a> ·
   <a href="#languages">Languages</a> ·
   <a href="README.pt-BR.md">Português</a> ·
   <a href="#kreyòl-ayisyen">Kreyòl</a>
 </p>
 
 <p align="center">
-  <img src="docs/screenshot-en.png" alt="Dosye main window" width="900">
+  <img src="docs/tutorial/assets/shot-main.webp" alt="Dosye main window" width="900">
 </p>
 
 Dosye is a small desktop app for designing folder icons. Pick one of **51 shapes**, paint it with colours,
@@ -55,11 +56,28 @@ shadow, then export a multi-size **`.ico`** or a **`.png`** — or apply the ico
 - **15 languages**, switchable at runtime, auto-detected on first run.
 - Fits 1366×768 screens, including 125 % scaling.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-cover.webp" alt="Image cover" width="100%"><br><sub>Image cover</sub></td>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-png_coming_out.webp" alt="PNG coming out of the folder" width="100%"><br><sub>PNG coming out of the folder</sub></td>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-emblem.webp" alt="PNG as an emblem" width="100%"><br><sub>PNG as an emblem</sub></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-effects.webp" alt="Light & shadow" width="100%"><br><sub>Light & shadow</sub></td>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-export.webp" alt="Export .ico / .png" width="100%"><br><sub>Export .ico / .png</sub></td>
+    <td align="center" width="33%"><img src="docs/tutorial/assets/shot-apply.webp" alt="Apply icon to a folder" width="100%"><br><sub>Apply icon to a folder</sub></td>
+  </tr>
+</table>
+
 <p align="center">
-  <img src="docs/about-en.png" alt="About dialog" width="300">
-  <img src="docs/settings-en.png" alt="Settings dialog" width="270">
-  <img src="docs/help-en.png" alt="Help dialog" width="340">
+  <img src="docs/tutorial/assets/shot-about.webp" alt="About dialog" width="300">
+  <img src="docs/tutorial/assets/shot-settings.webp" alt="Settings dialog" width="270">
+  <img src="docs/tutorial/assets/shot-help.webp" alt="Help dialog" width="340">
 </p>
+
+A step-by-step illustrated tutorial in all 15 languages lives in [`docs/tutorial/`](docs/tutorial/) — download the folder and open `index.html` in a browser.
 
 ## Download
 
