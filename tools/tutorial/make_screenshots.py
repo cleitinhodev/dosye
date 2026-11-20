@@ -9,7 +9,7 @@
 Writes PNG files; tools/tutorial/build.py converts them to WebP.
 """
 import argparse
-import os
+import os, shutil
 import sys
 import tempfile
 import time
@@ -54,6 +54,8 @@ def cutout(path, out_png):
     return out_png, f"background {bg} removed"
 
 
+OV_IN = int(os.environ.get('OV_IN', 138)); OV_Y = int(os.environ.get('OV_Y', 8)); OV_EMB = int(os.environ.get('OV_EMB', 220))
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
@@ -81,7 +83,7 @@ def main():
     char = a.character or asset("stickers", "lua.png")
     char_png, note = cutout(char, os.path.join(tempfile.mkdtemp(), "character.png"))
     print("character:", note)
-    import shutil; shutil.copy(char_png, os.path.join(a.out, "character.png"))
+    shutil.copy(char_png, os.path.join(a.out, "character.png"))
 
     w = MainWindow(s); w.setWindowState(Qt.WindowNoState); w.resize(1366, 768); w.show()
 
@@ -116,9 +118,9 @@ def main():
         w.style_btns["moderna"].click()
         w._load_cover_file(cover); w.set("cover_area", "toda"); w.set("cover_back_dark", 45)
         w._load_overlay_file(char_png); w.set("overlay_mode", "dentro")
-        w.set("ov_scale", 118); w.set("ov_y", -6)
-        w.set("glow", 45); w.set("glow_color", "#B18CFF"); w.set("gloss", 45); w.set("light", 60)
-        w.set_color1("#5B3FD8"); w.set_color2("#C084FC")
+        w.set("ov_scale", OV_IN); w.set("ov_y", OV_Y)
+        w.set("glow", 55); w.set("glow_color", "#FF7AB6"); w.set("gloss", 40); w.set("light", 60)
+        w.set_color1("#5B3FD8"); w.set_color2("#FF7AB6")
         settle(0.4)
 
     # 1) main window: cover + character coming out
@@ -133,9 +135,9 @@ def main():
     # 2) emblem on a gradient folder
     w.reset(); settle()
     w.style_btns["classica"].click()
-    w.set_color1("#3B2BB8"); w.set("gradient", True); w.set_color2("#B15CFF"); w.set("grad_angle", 120)
+    w.set_color1("#3B2BB8"); w.set("gradient", True); w.set_color2("#FF7AB6"); w.set("grad_angle", 120)
     w._load_overlay_file(char_png); w.set("overlay_mode", "frente"); w.set("emblem_style", "original")
-    w.set("ov_scale", 95); w.set("glow", 35); w.set("glow_color", "#FFC93C"); w.set("glass", True)
+    w.set("ov_scale", OV_EMB); w.set("glow", 40); w.set("glow_color", "#FFC93C")
     settle(0.4)
     scroll_to("png.title"); shot("emblem")
     fc.render_size(w.P, 512).save(os.path.join(a.out, "design_emblem.png"))
@@ -144,9 +146,9 @@ def main():
     # 3) light & shadow
     w.reset(); settle()
     w.style_btns["aberta"].click()
-    w.set_color1("#FFC93C"); w.set("gradient", True); w.set_color2("#FF7A3C")
-    w._load_overlay_file(char_png); w.set("overlay_mode", "dentro"); w.set("ov_scale", 105)
-    w.set("glow", 70); w.set("glow_color", "#FFD27A"); w.set("gloss", 70); w.set("shadow", 70)
+    w.set_color1("#FF8FC8"); w.set("gradient", True); w.set_color2("#8B5CFF")
+    w._load_overlay_file(char_png); w.set("overlay_mode", "dentro"); w.set("ov_scale", OV_IN); w.set("ov_y", OV_Y)
+    w.set("glow", 70); w.set("glow_color", "#FFC93C"); w.set("gloss", 70); w.set("shadow", 70)
     w.set("light_dir", 40); w.set("border", True)
     settle(0.4)
     scroll_to("light.title"); shot("effects")
@@ -180,7 +182,12 @@ def main():
     from dosye.system import foldericon as fi
     import io
     buf = io.BytesIO(); fc.render_size(w.P, 256).save(buf, "PNG")
-    root = os.path.join(tempfile.mkdtemp(), "PENDRIVE")
+    # a friendly-looking path for the screenshot; falls back to a temp dir
+    root = os.environ.get("DOSYE_SHOT_PENDRIVE", "/media/usb/PENDRIVE")
+    try:
+        shutil.rmtree(root, ignore_errors=True); os.makedirs(root)
+    except OSError:
+        root = os.path.join(tempfile.mkdtemp(), "PENDRIVE")
     for i, nm in enumerate(("Photos", "Work/Reports", "Music", "Games/Saves", "Projects/Dosye")):
         d = os.path.join(root, nm); os.makedirs(d)
         if nm != "Music":

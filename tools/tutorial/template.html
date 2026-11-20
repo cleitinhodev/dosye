@@ -86,8 +86,9 @@ select:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(
 .hero{position:relative;min-height:min(92vh,860px);display:flex;align-items:center;overflow:hidden;isolation:isolate}
 .hero-bg{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;transform:scale(1.08);filter:saturate(1.1)}
 .hero::before{content:"";position:absolute;inset:0;z-index:-1;background:
-  linear-gradient(90deg,rgba(7,10,36,.95) 0%,rgba(7,10,36,.78) 42%,rgba(12,15,48,.35) 75%,rgba(12,15,48,.55)),
-  linear-gradient(180deg,rgba(7,10,36,.2),rgba(7,10,36,.1) 60%,var(--bg))}
+  linear-gradient(90deg,rgba(7,10,36,.94) 0%,rgba(7,10,36,.80) 40%,rgba(20,14,60,.45) 70%,rgba(12,15,48,.55)),
+  radial-gradient(ellipse at 75% 40%,rgba(255,122,182,.10),transparent 60%),
+  linear-gradient(180deg,rgba(7,10,36,.35),rgba(7,10,36,.15) 55%,var(--bg))}
 .hero-in{max-width:var(--maxw);margin:auto;padding:70px 20px 90px;display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;width:100%}
 .kicker{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.35);padding:6px 12px;border-radius:99px}
 h1.title{font-size:clamp(54px,9vw,112px);line-height:.95;margin:.25em 0 .15em;font-weight:900;letter-spacing:-.02em;
@@ -152,7 +153,7 @@ pre.cmd{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 
 .shot figcaption{position:absolute;right:10px;bottom:10px;font-size:12px;background:rgba(7,10,36,.75);padding:3px 9px;border-radius:8px;color:var(--muted);opacity:0;transition:opacity .25s}
 .shot:hover figcaption{opacity:1}
 .shots{display:grid;gap:14px}
-.shots.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.shots.two{grid-template-columns:minmax(0,1fr)}
 .dialog-shot{max-width:520px;margin:auto}
 ul.settings{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:10px}
 ul.settings li{background:rgba(22,26,80,.5);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
@@ -178,7 +179,8 @@ footer img{width:46px;margin:0 auto 10px;filter:drop-shadow(0 0 12px rgba(139,92
 .totop{position:fixed;right:18px;bottom:18px;z-index:40;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;border:none;box-shadow:0 8px 24px rgba(139,92,255,.5);opacity:0;pointer-events:none;transition:opacity .3s;cursor:pointer;font-size:20px}
 .totop.show{opacity:1;pointer-events:auto}
 /* decorative character */
-.deco-char{position:absolute;right:max(0px,calc(50% - 760px));top:-60px;width:min(300px,28vw);opacity:.9;pointer-events:none;filter:drop-shadow(0 0 30px rgba(139,92,255,.45));animation:float 9s ease-in-out infinite}
+.hero-art .deco-char{position:absolute;z-index:2;width:min(400px,30vw);right:-26%;bottom:-16%;pointer-events:none;filter:drop-shadow(0 18px 30px rgba(0,0,0,.55)) drop-shadow(0 0 26px rgba(255,122,182,.35));animation:float 9s ease-in-out infinite reverse}
+.hero-art img.folder{z-index:1;transform:translateX(-8%)}
 /* lightbox */
 #lb{position:fixed;inset:0;z-index:100;background:rgba(4,6,20,.9);display:none;align-items:center;justify-content:center;padding:24px;cursor:zoom-out}
 #lb.open{display:flex}
@@ -191,10 +193,11 @@ footer img{width:46px;margin:0 auto 10px;filter:drop-shadow(0 0 12px rgba(139,92
 @media (max-width:960px){
   .hero-in{grid-template-columns:1fr;text-align:center;padding-top:40px}
   .hero-art{min-height:280px;order:-1} .hero-art img.folder{width:min(300px,70vw)}
+  .hero-art .deco-char{display:none} .hero-art img.folder{transform:none}
   .ctas{justify-content:center} .tagline{margin-left:auto;margin-right:auto}
   .step{grid-template-columns:1fr;gap:22px} .step:nth-child(even) .txt{order:0}
   .dl-grid,.links-grid{grid-template-columns:1fr 1fr} .note{grid-template-columns:1fr}
-  nav.links{display:none} .deco-char{display:none}
+  nav.links{display:none}
 }
 @media (max-width:600px){
   .dl-grid,.links-grid,.shots.two{grid-template-columns:1fr}
@@ -235,7 +238,7 @@ footer img{width:46px;margin:0 auto 10px;filter:drop-shadow(0 0 12px rgba(139,92
         </div>
         <div class="ver"><span data-t="version"></span> <b class="vnum"></b> · Windows 10/11 · Linux x86_64 · GPL-3.0</div>
       </div>
-      <div class="hero-art rv d2"><div class="halo"></div><img class="folder" id="heroFolder" alt="Dosye folder icon"></div>
+      <div class="hero-art rv d2"><div class="halo"></div><img class="deco-char" id="decoChar" alt="" aria-hidden="true"><img class="folder" id="heroFolder" alt="Dosye folder icon"></div>
     </div>
     <div class="scroll-cue" aria-hidden="true"></div>
   </section>
@@ -255,7 +258,6 @@ footer img{width:46px;margin:0 auto 10px;filter:drop-shadow(0 0 12px rgba(139,92
   </section>
 
   <section class="block" id="tutorial" style="position:relative">
-    <img class="deco-char" id="decoChar" alt="" aria-hidden="true">
     <div class="sec-head rv"><h2 data-t="tut_title"></h2><p data-t="tut_sub"></p><div class="glow-line"></div></div>
     <div id="steps"></div>
   </section>
